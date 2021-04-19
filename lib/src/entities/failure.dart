@@ -1,37 +1,40 @@
-// TODO: Convert to freezed union
-enum LocalAuthFailure {
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'failure.freezed.dart';
+
+@freezed
+class LocalAuthFailure with _$LocalAuthFailure {
   /// Indicates that the user has not yet configured a passcode (iOS) or
   /// PIN/pattern/password (Android) on the device.
-  passcodeNotSet,
+  const factory LocalAuthFailure.passcodeNotSet() = PasscodeNotSet;
 
   /// Indicates the user has not enrolled any fingerprints on the device.
-  noFingerprintsAvailable,
-
-  /// Indicates the OS API lock out due to too many attempts.
-  tooManyAttempts,
+  const factory LocalAuthFailure.noFingerprintsAvailable() = NoFingerprintsAvailable;
 
   /// Indicates the API being disabled due to too many lock outs.
+  const factory LocalAuthFailure.tooManyAttempts() = TooManyAttempts;
+
   /// Strong authentication like PIN/Pattern/Password is required to unlock.
-  permanentrlyLockedOut,
+  const factory LocalAuthFailure.permanentlyLockedOut() = PermanentlyLockedOut;
 
   /// Indicates the device operating system is not iOS or Android.
-  platformNotSupported,
+  const factory LocalAuthFailure.platformNotSupported() = PlatformNotSupported;
 
   /// Indicates the device does not have a Touch ID/fingerprint scanner.
-  notAvailable,
+  const factory LocalAuthFailure.notAvailable() = NotAvailable;
 
   /// Provided PIN code was wrong
-  wrongPin,
+  const factory LocalAuthFailure.wrongPin() = WrongPin;
 
   /// PIN and confirmation PIN don't match
-  pinNotMatching,
+  const factory LocalAuthFailure.pinNotMatching() = PinNotMatching;
 
   /// Biometric authentication failed without providing any other reason
-  biometricAuthenticationFailed,
+  const factory LocalAuthFailure.biometricAuthenticationFailed() = BiometricAuthenticationFailed;
 
   /// Authentication is already set up, overwriting is not allowed
-  alreadySetUp,
+  const factory LocalAuthFailure.alreadySetUp() = AlreadySetUp;
 
   /// Authentication failed for no specific reason
-  unknown,
+  const factory LocalAuthFailure.unknown() = Unknown;
 }
