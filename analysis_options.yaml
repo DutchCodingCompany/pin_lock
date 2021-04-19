@@ -1,0 +1,16 @@
+include: package:lint/analysis_options.yaml
+
+analyzer:
+    exclude:
+        - "lib/**/*.g.dart"
+        - "lib/**/*.freezed.dart"
+    errors:
+      todo: info
+    enable-experiment:
+      - nonfunction-type-aliases
+
+linter:
+  rules:
+    prefer_single_quotes: true
+    sort_pub_dependencies: false
+   
