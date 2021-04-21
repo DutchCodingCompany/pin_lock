@@ -1,14 +1,35 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:pin_lock/pin_lock.dart';
+import 'package:pin_lock/src/entities/authenticator.dart';
+import 'package:pin_lock/src/entities/lock_controller.dart';
+import 'package:pin_lock/src/entities/value_objects.dart';
+import 'package:pin_lock/src/presentation/authenticator_widget.dart';
+import 'package:pin_lock/src/presentation/setup_authentication_widget.dart';
+import 'package:pin_lock/src/repositories/pin_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(MyApp());
+Authenticator globalAuthenticator;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final sharedPref = await SharedPreferences.getInstance();
+  globalAuthenticator = AuthenticatorImpl(
+    LocalAuthenticationRepositoryImpl(sharedPref),
+    LocalAuthentication(),
+    LockController(),
+    userId: UserId('1'),
+    pinValidator: RegExp(r'^[0-9]+$'),
+  );
+  runApp(MyApp(sp: sharedPref));
 }
 
 class MyApp extends StatefulWidget {
+  final SharedPreferences sp;
+
+  const MyApp({Key key, @required this.sp}) : super(key: key);
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -45,13 +66,41 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
+      home: Builder(
+        builder: (navContext) => AuthenticatorWidget(
+          authenticator: globalAuthenticator,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Plugin example app'),
+            ),
+            body: Center(
+              child: Column(
+                children: [
+                  Text('Running on: $_platformVersion\n'),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(navContext).push(SetupAuthWidget.route());
+                      },
+                      child: Text('setup auth')),
+                ],
+              ),
+            ),
+          ),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
-        ),
+      ),
+    );
+  }
+}
+
+class SetupAuthWidget extends StatelessWidget {
+  static MaterialPageRoute route() => MaterialPageRoute(builder: (_) => SetupAuthWidget());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: SetupAuthenticationWidget(
+        authenticator: globalAuthenticator,
       ),
     );
   }

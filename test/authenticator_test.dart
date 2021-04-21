@@ -8,6 +8,7 @@ import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
+import 'package:pin_lock/src/entities/biometric_availability.dart';
 
 import 'authenticator_test.mocks.dart';
 
@@ -52,24 +53,27 @@ void main() {
   });
 
   group('shouldAttemptBiometricAuthentication', () {
-    test('returns true if it is set in the repository', () async {
+    test('returns [Available:true] when available and enabled', () async {
+      when(localAuth.isDeviceSupported()).thenAnswer((_) async => true);
       when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
 
-      final response = await authenticator.shouldAttemptBiometricAuthentication();
-      expect(response, true);
+      final response = await authenticator.getBiometricAuthenticationAvailability();
+      expect(response, const Available(isEnabled: true));
     });
 
-    test('returns false if set in the repository', () async {
+    test('returns [Anavailable:false] when available and not enabled', () async {
+      when(localAuth.isDeviceSupported()).thenAnswer((_) async => true);
       when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
 
-      final response = await authenticator.shouldAttemptBiometricAuthentication();
-      expect(response, false);
+      final response = await authenticator.getBiometricAuthenticationAvailability();
+      expect(response, const Available(isEnabled: false));
     });
-    test('returns false if not set in the repository', () async {
+    test('returns [Unavailable] if device is not supported', () async {
+      when(localAuth.isDeviceSupported()).thenAnswer((_) async => false);
       when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(null));
 
-      final response = await authenticator.shouldAttemptBiometricAuthentication();
-      expect(response, false);
+      final response = await authenticator.getBiometricAuthenticationAvailability();
+      expect(response, const Unavailable(reason: NotAvailable()));
     });
   });
 
@@ -337,7 +341,6 @@ void main() {
   });
 
   group('unlockWithPin', () {
-    // TODO: verify that lock controller has been notified
     test('auto-succeeds if pin authentication is not enabled', () async {
       when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
       final result = await authenticator.unlockWithPin(pin: Pin('1'));

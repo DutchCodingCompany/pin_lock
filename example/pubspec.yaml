@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  shared_preferences: ^2.0.5
+  local_auth: ^1.1.1
 
   pin_lock:
     # When depending on this package from a real application you should use:

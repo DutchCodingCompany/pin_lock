@@ -6,24 +6,32 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
+import 'package:pin_lock/src/entities/lock_state.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
 import 'package:local_auth/error_codes.dart' as biometric_error;
+import 'package:pin_lock/src/entities/biometric_availability.dart';
 
 // TODO: Should a fallback pin be required?
 
 abstract class Authenticator {
   final int maxRetries;
   final Duration lockedOutDuration;
+  final RegExp? pinValidator;
+  final int pinLength;
 
-  LockController get lockController;
+  Stream<LockState> get lockState;
 
   UserId get userId;
 
   // TODO: Figure out what a constructor should do
-  // TODO: Make the authenticator more configurable, with min pin lenght and such
   @mustCallSuper
-  const Authenticator({this.maxRetries = 5, this.lockedOutDuration = const Duration(minutes: 5)});
+  const Authenticator({
+    this.maxRetries = 5,
+    this.lockedOutDuration = const Duration(minutes: 5),
+    this.pinValidator,
+    this.pinLength = 4,
+  });
 
   /// -- Setup --
 
@@ -31,8 +39,8 @@ abstract class Authenticator {
   /// It is possible that biometric authentication is not enabled even if pin authentication is
   Future<bool> isPinAuthenticationEnabled();
 
-  /// Returns [true] if the user with id [forUser] has opted in for biometric authentication
-  Future<bool> shouldAttemptBiometricAuthentication();
+  /// Checks whether biometric authentication is available and enabled
+  Future<BiometricAvailability> getBiometricAuthenticationAvailability();
 
   /// Enables pin authentication, making sure that [pin] and [confirmationPin] match
   Future<Either<LocalAuthFailure, Unit>> enablePinAuthentication({
@@ -75,10 +83,11 @@ abstract class Authenticator {
 
   /// -- Helpers --
 
-  Future<bool> supportsBiometricAuthentication();
-
   /// [BiometricMethod]s can be used to show the appropriate icons in the UI
   Future<List<BiometricMethod>> getAvailableBiometricMethods();
+
+  /// Returns whether pin matches specified length and regex
+  bool isValidPin(String string);
 
   // TODO: App in background events + time tracking
 }
@@ -88,15 +97,23 @@ abstract class Authenticator {
 class AuthenticatorImpl implements Authenticator {
   @override
   final Duration lockedOutDuration;
-
   @override
   final int maxRetries;
+  @override
+  final int pinLength;
+  @override
+  final RegExp? pinValidator;
 
   final LocalAuthenticationRepository _repository;
   final LocalAuthentication _biometricAuth;
 
+  final LockController _lockController;
+
   @override
-  final LockController lockController;
+  Stream<LockState> get lockState {
+    _checkInitialLockStatus();
+    return _lockController.state;
+  }
 
   @override
   final UserId userId;
@@ -104,21 +121,27 @@ class AuthenticatorImpl implements Authenticator {
   AuthenticatorImpl(
     this._repository,
     this._biometricAuth,
-    this.lockController, {
+    this._lockController, {
     this.maxRetries = 5,
     this.lockedOutDuration = const Duration(minutes: 5),
+    this.pinLength = 4,
+    this.pinValidator,
     required this.userId,
   }) {
-    _checkInitialLockStatus();
+    // _checkInitialLockStatus();
   }
 
   Future<void> _checkInitialLockStatus() async {
     final isEnabled = await isPinAuthenticationEnabled();
     if (!isEnabled) {
-      lockController.unlock();
+      _lockController.unlock();
     } else {
-      final isBiometricsAvailable = await shouldAttemptBiometricAuthentication();
-      lockController.lock(isBiometricAvailable: isBiometricsAvailable);
+      final biometricAvailablily = await getBiometricAuthenticationAvailability();
+      final shouldTryBiometrics = biometricAvailablily.when(
+        available: (isEnabled) => isEnabled,
+        unavailable: (_) => false,
+      );
+      _lockController.lock(isBiometricAvailable: shouldTryBiometrics);
     }
   }
 
@@ -129,9 +152,13 @@ class AuthenticatorImpl implements Authenticator {
   }
 
   @override
-  Future<bool> shouldAttemptBiometricAuthentication() async {
+  Future<BiometricAvailability> getBiometricAuthenticationAvailability() async {
+    final isSupported = await _supportsBiometricAuthentication();
+    if (!isSupported) {
+      return const Unavailable(reason: LocalAuthFailure.notAvailable());
+    }
     final storedValue = await _repository.isBiometricAuthenticationEnabled(userId: userId);
-    return storedValue ?? false;
+    return Available(isEnabled: storedValue ?? false);
   }
 
   /// -- Setup authentication --
@@ -198,10 +225,6 @@ class AuthenticatorImpl implements Authenticator {
     bool requirePin = false,
     Pin? pin,
   }) async {
-    final isBiometricsEnabled = await shouldAttemptBiometricAuthentication();
-    if (!isBiometricsEnabled) {
-      return const Right(unit);
-    }
     if (requirePin) {
       final userPin = await _repository.getPin(forUser: userId);
       if (userPin?.value != pin?.value) {
@@ -248,7 +271,7 @@ class AuthenticatorImpl implements Authenticator {
   Future<Either<LocalAuthFailure, Unit>> unlockWithPin({required Pin pin}) async {
     final isEnabled = await isPinAuthenticationEnabled();
     if (!isEnabled) {
-      lockController.unlock();
+      _lockController.unlock();
       return const Right(unit);
     }
     final failedAttemptsList = await _repository.getListOfFailedAttempts(userId: userId);
@@ -266,37 +289,42 @@ class AuthenticatorImpl implements Authenticator {
     if (failedAttemptsList.isNotEmpty) {
       await _repository.resetFailedAttemptCount(ofUser: userId);
     }
-    lockController.unlock();
+    _lockController.unlock();
     return const Right(unit);
   }
 
   @override
   Future<Either<LocalAuthFailure, bool>> unlockWithBiometrics({required String userFacingExplanation}) async {
-    final isSupported = await supportsBiometricAuthentication();
-    final isEnabled = await shouldAttemptBiometricAuthentication();
-    if (!isSupported || !isEnabled) {
-      lockController.lock(isBiometricAvailable: false);
-      return const Left(LocalAuthFailure.notAvailable());
-    }
-
-    try {
-      final isSuccessful = await _biometricAuth.authenticate(
-        localizedReason: userFacingExplanation,
-        stickyAuth: true, // Hopefully this helps when enabling 'fixable' visit to settings
-      );
-      lockController.unlock();
-      return Right(isSuccessful);
-    } on PlatformException catch (e) {
-      return Left(e.toLocalAuthFailure());
-    } catch (e) {
-      return const Left(LocalAuthFailure.unknown());
-    }
+    final biometricAvailability = await getBiometricAuthenticationAvailability();
+    return biometricAvailability.when(
+      available: (isEnabled) async {
+        if (!isEnabled) {
+          _lockController.lock(isBiometricAvailable: false);
+          return const Left(LocalAuthFailure.notAvailable());
+        }
+        try {
+          final isSuccessful = await _biometricAuth.authenticate(
+            localizedReason: userFacingExplanation,
+            stickyAuth: true, // Hopefully this helps when enabling 'fixable' visit to settings
+          );
+          _lockController.unlock();
+          return Right(isSuccessful);
+        } on PlatformException catch (e) {
+          return Left(e.toLocalAuthFailure());
+        } catch (e) {
+          return const Left(LocalAuthFailure.unknown());
+        }
+      },
+      unavailable: (_) {
+        _lockController.lock(isBiometricAvailable: false);
+        return const Left(LocalAuthFailure.notAvailable());
+      },
+    );
   }
 
   /// -- Helpers --
 
-  @override
-  Future<bool> supportsBiometricAuthentication() {
+  Future<bool> _supportsBiometricAuthentication() {
     return _biometricAuth.isDeviceSupported();
   }
 
@@ -318,6 +346,17 @@ class AuthenticatorImpl implements Authenticator {
       }
     }
     return methods;
+  }
+
+  @override
+  bool isValidPin(String string) {
+    if (string.length < pinLength) {
+      return false;
+    }
+    if (pinValidator == null) {
+      return true;
+    }
+    return pinValidator!.hasMatch(string);
   }
 }
 
