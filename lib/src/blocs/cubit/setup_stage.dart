@@ -15,10 +15,16 @@ class SetupStage with _$SetupStage {
   const factory SetupStage.enabling({
     String? pin,
     String? confirmationPin,
+    required int pinLength,
     LocalAuthFailure? error,
     @Default(false) bool canSave,
   }) = Enabling;
 
-  const factory SetupStage.disabling() = Disabling;
+  const factory SetupStage.disabling({
+    required int pinLength,
+    @Default('') String pin,
+    @Default(false) bool canUnlock,
+    LocalAuthFailure? error,
+  }) = Disabling;
   const factory SetupStage.changingPasscode() = ChangingPasscode;
 }

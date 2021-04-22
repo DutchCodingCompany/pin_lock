@@ -39,7 +39,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   }
 
   Future<void> startEnablingPincode() async {
-    emit(const Enabling());
+    emit(Enabling(pinLength: authenticator.pinLength));
   }
 
   void pinEntered(String pin) {
@@ -71,6 +71,28 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
           emit(const Base(isLoading: true));
           checkInitialState();
         },
+      );
+    }
+  }
+
+  void startDisablingPincode() {
+    emit(Disabling(pinLength: authenticator.pinLength));
+  }
+
+  void enterPinToDisable(String pin) {
+    final lastState = state;
+    if (lastState is Disabling) {
+      emit(lastState.copyWith(pin: pin, canUnlock: authenticator.isValidPin(pin)));
+    }
+  }
+
+  Future<void> disablePinAuthentication() async {
+    final lastState = state;
+    if (lastState is Disabling) {
+      final result = await authenticator.disableAuthenticationWithPin(pin: Pin(lastState.pin));
+      result.fold(
+        (l) => emit(lastState.copyWith(pin: '', canUnlock: false, error: l)),
+        (r) => checkInitialState(),
       );
     }
   }

@@ -25,15 +25,16 @@ class SetupAuthenticationWidget extends StatelessWidget {
               isBiometricAvailable: base.isBiometricAuthAvailable,
               isBiometricEnabled: base.isBiometricAuthEnabled,
               onToggle: () {
-                BlocProvider.of<SetuplocalauthCubit>(context).startEnablingPincode();
+                if (base.isPinAuthEnabled == false) {
+                  BlocProvider.of<SetuplocalauthCubit>(context).startEnablingPincode();
+                } else if (base.isPinAuthEnabled == true) {
+                  BlocProvider.of<SetuplocalauthCubit>(context).startDisablingPincode();
+                }
               },
             );
           },
-          enabling: (s) => EnablingWidget(
-            data: s,
-            pinLength: authenticator.pinLength,
-          ),
-          disabling: (s) => Container(),
+          enabling: (s) => EnablingWidget(data: s),
+          disabling: (s) => DisablingWidget(data: s),
           changingPasscode: (s) => Container(),
         ),
       ),
@@ -41,11 +42,37 @@ class SetupAuthenticationWidget extends StatelessWidget {
   }
 }
 
+class DisablingWidget extends StatelessWidget {
+  final Disabling data;
+
+  const DisablingWidget({Key? key, required this.data}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        PinInputWidget(
+          value: data.pin,
+          pinLength: data.pinLength,
+          focusNode: FocusNode()..requestFocus(),
+          onInput: (text) {
+            BlocProvider.of<SetuplocalauthCubit>(context).enterPinToDisable(text);
+          },
+        ),
+        if (data.error != null) Text(data.error.toString(), style: const TextStyle(color: Colors.red)),
+        TextButton(
+          onPressed:
+              data.canUnlock ? () => BlocProvider.of<SetuplocalauthCubit>(context).disablePinAuthentication() : null,
+          child: const Text('save'),
+        ),
+      ],
+    );
+  }
+}
+
 class EnablingWidget extends StatefulWidget {
   final Enabling data;
-  final int pinLength;
 
-  const EnablingWidget({Key? key, required this.data, required this.pinLength}) : super(key: key);
+  const EnablingWidget({Key? key, required this.data}) : super(key: key);
 
   @override
   _EnablingWidgetState createState() => _EnablingWidgetState();
@@ -68,7 +95,7 @@ class _EnablingWidgetState extends State<EnablingWidget> {
       children: [
         PinInputWidget(
           value: widget.data.pin ?? '',
-          pinLength: widget.pinLength,
+          pinLength: widget.data.pinLength,
           focusNode: pinFocusNode,
           onInput: (pinText) {
             bloc.pinEntered(pinText);
@@ -79,7 +106,7 @@ class _EnablingWidgetState extends State<EnablingWidget> {
         ),
         PinInputWidget(
           value: widget.data.confirmationPin ?? '',
-          pinLength: widget.pinLength,
+          pinLength: widget.data.pinLength,
           focusNode: confirmFocusNode,
           onInput: (confirmationText) {
             bloc.pinConfirmationEntered(confirmationText);
