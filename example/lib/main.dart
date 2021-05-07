@@ -21,7 +21,6 @@ Future<void> main() async {
     LocalAuthentication(),
     LockController(),
     userId: UserId('1'),
-    pinValidator: RegExp(r'^[0-9]+$'),
   );
   runApp(MyApp(sp: sharedPref));
 }

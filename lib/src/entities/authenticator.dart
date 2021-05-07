@@ -17,7 +17,6 @@ import 'package:pin_lock/src/entities/biometric_availability.dart';
 abstract class Authenticator {
   final int maxRetries;
   final Duration lockedOutDuration;
-  final RegExp? pinValidator;
   final int pinLength;
 
   Stream<LockState> get lockState;
@@ -29,7 +28,6 @@ abstract class Authenticator {
   const Authenticator({
     this.maxRetries = 5,
     this.lockedOutDuration = const Duration(minutes: 5),
-    this.pinValidator,
     this.pinLength = 4,
   });
 
@@ -86,9 +84,6 @@ abstract class Authenticator {
   /// [BiometricMethod]s can be used to show the appropriate icons in the UI
   Future<List<BiometricMethod>> getAvailableBiometricMethods();
 
-  /// Returns whether pin matches specified length and regex
-  bool isValidPin(String string);
-
   // TODO: App in background events + time tracking
 }
 
@@ -101,8 +96,6 @@ class AuthenticatorImpl implements Authenticator {
   final int maxRetries;
   @override
   final int pinLength;
-  @override
-  final RegExp? pinValidator;
 
   final LocalAuthenticationRepository _repository;
   final LocalAuthentication _biometricAuth;
@@ -125,7 +118,6 @@ class AuthenticatorImpl implements Authenticator {
     this.maxRetries = 5,
     this.lockedOutDuration = const Duration(minutes: 5),
     this.pinLength = 4,
-    this.pinValidator,
     required this.userId,
   }) {
     // _checkInitialLockStatus();
@@ -346,17 +338,6 @@ class AuthenticatorImpl implements Authenticator {
       }
     }
     return methods;
-  }
-
-  @override
-  bool isValidPin(String string) {
-    if (string.length < pinLength) {
-      return false;
-    }
-    if (pinValidator == null) {
-      return true;
-    }
-    return pinValidator!.hasMatch(string);
   }
 }
 

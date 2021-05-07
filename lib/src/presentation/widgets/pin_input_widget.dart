@@ -7,6 +7,7 @@ class PinInputWidget extends StatefulWidget {
   final String value;
   final int pinLength;
   final FocusNode focusNode;
+  final FocusNode? nextFocusNode;
   final Function(String) onInput;
 
   final PinInputBuilder? emptyNodeBuilder;
@@ -22,6 +23,7 @@ class PinInputWidget extends StatefulWidget {
     this.emptyNodeBuilder,
     this.focusedNodeBuilder,
     this.filledPinInputBuilder,
+    this.nextFocusNode,
   }) : super(key: key);
 
   @override
@@ -44,7 +46,9 @@ class _PinInputWidgetState extends State<PinInputWidget> {
     }
     final selectedIndex = widget.value.length;
     return GestureDetector(
-      onTap: () => widget.focusNode.requestFocus(),
+      onTap: () {
+        widget.focusNode.requestFocus();
+      },
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -52,8 +56,11 @@ class _PinInputWidgetState extends State<PinInputWidget> {
             controller: controller,
             focusNode: widget.focusNode,
             keyboardType: TextInputType.number,
-            onChanged: (text) {
+            onChanged: (text) async {
               widget.onInput(text);
+              if (text.length == widget.pinLength && widget.focusNode.hasFocus) {
+                widget.nextFocusNode?.requestFocus();
+              }
             },
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.all(0),

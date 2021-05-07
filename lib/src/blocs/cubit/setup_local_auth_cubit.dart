@@ -45,16 +45,14 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   void pinEntered(String pin) {
     final lastState = state;
     if (lastState is Enabling) {
-      final canSave = authenticator.isValidPin(pin) && authenticator.isValidPin(lastState.confirmationPin ?? '');
-      emit(lastState.copyWith(pin: pin, canSave: canSave));
+      emit(lastState.copyWith(pin: pin));
     }
   }
 
   void pinConfirmationEntered(String confirmation) {
     final lastState = state;
     if (lastState is Enabling) {
-      final canSave = authenticator.isValidPin(confirmation) && authenticator.isValidPin(lastState.pin ?? '');
-      emit(lastState.copyWith(confirmationPin: confirmation, canSave: canSave));
+      emit(lastState.copyWith(confirmationPin: confirmation));
     }
   }
 
@@ -82,7 +80,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   void enterPinToDisable(String pin) {
     final lastState = state;
     if (lastState is Disabling) {
-      emit(lastState.copyWith(pin: pin, canUnlock: authenticator.isValidPin(pin)));
+      emit(lastState.copyWith(pin: pin));
     }
   }
 
@@ -91,7 +89,58 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
     if (lastState is Disabling) {
       final result = await authenticator.disableAuthenticationWithPin(pin: Pin(lastState.pin));
       result.fold(
-        (l) => emit(lastState.copyWith(pin: '', canUnlock: false, error: l)),
+        (l) => emit(lastState.copyWith(pin: '', error: l)),
+        (r) => checkInitialState(),
+      );
+    }
+  }
+
+  void startChangingPincode() {
+    emit(ChangingPasscode(pinLength: authenticator.pinLength));
+  }
+
+  void enterPinToChange(String pin) {
+    final lastState = state;
+    if (lastState is ChangingPasscode) {
+      emit(lastState.copyWith(currentPin: pin));
+    }
+  }
+
+  void enterNewPin(String pin) {
+    final lastState = state;
+    if (lastState is ChangingPasscode) {
+      emit(lastState.copyWith(newPin: pin));
+    }
+  }
+
+  void enterConfirmationPin(String pin) {
+    final lastState = state;
+    if (lastState is ChangingPasscode) {
+      emit(lastState.copyWith(confirmationPin: pin));
+    }
+  }
+
+  Future<void> changePin() async {
+    final lastState = state;
+    if (lastState is ChangingPasscode) {
+      final result = await authenticator.changePinCode(
+        oldPin: Pin(lastState.currentPin),
+        newPin: Pin(lastState.newPin),
+        newPinConfirmation: Pin(lastState.confirmationPin),
+      );
+      result.fold(
+        (l) {
+          l.maybeWhen(
+            tooManyAttempts: () => emit(lastState.copyWith(currentPin: '', error: l)),
+            wrongPin: () => emit(lastState.copyWith(currentPin: '', error: l)),
+            pinNotMatching: () => emit(lastState.copyWith(
+              newPin: '',
+              confirmationPin: '',
+              error: l,
+            )),
+            orElse: () => emit(lastState.copyWith(error: l)),
+          );
+        },
         (r) => checkInitialState(),
       );
     }

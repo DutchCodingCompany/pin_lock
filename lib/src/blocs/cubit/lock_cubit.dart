@@ -10,7 +10,7 @@ class LockCubit extends Cubit<LockScreenState> {
 
   Future<void> enterPin(String pin) async {
     emit(LockScreenState(pin: pin));
-    if (_authenticator.isValidPin(pin)) {
+    if (_authenticator.pinLength == pin.length) {
       final result = await _authenticator.unlockWithPin(pin: Pin(pin));
       result.fold(
         (l) => emit(LockScreenState(error: l)),

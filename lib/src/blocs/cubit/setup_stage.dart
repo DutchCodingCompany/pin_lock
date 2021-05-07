@@ -5,6 +5,7 @@ part 'setup_stage.freezed.dart';
 
 @freezed
 class SetupStage with _$SetupStage {
+  const SetupStage._();
   const factory SetupStage.base({
     @Default(false) bool isLoading,
     bool? isPinAuthEnabled,
@@ -17,14 +18,29 @@ class SetupStage with _$SetupStage {
     String? confirmationPin,
     required int pinLength,
     LocalAuthFailure? error,
-    @Default(false) bool canSave,
   }) = Enabling;
 
   const factory SetupStage.disabling({
     required int pinLength,
     @Default('') String pin,
-    @Default(false) bool canUnlock,
     LocalAuthFailure? error,
   }) = Disabling;
-  const factory SetupStage.changingPasscode() = ChangingPasscode;
+
+  const factory SetupStage.changingPasscode({
+    required int pinLength,
+    @Default('') String currentPin,
+    @Default('') String newPin,
+    @Default('') String confirmationPin,
+    LocalAuthFailure? error,
+  }) = ChangingPasscode;
+
+  bool get canGoFurther => map(
+        base: (_) => true,
+        enabling: (s) => s.pin?.length == s.pinLength && s.confirmationPin?.length == s.pinLength,
+        disabling: (s) => s.pinLength == s.pin.length,
+        changingPasscode: (s) =>
+            s.currentPin.length == s.pinLength &&
+            s.newPin.length == s.pinLength &&
+            s.confirmationPin.length == s.pinLength,
+      );
 }
