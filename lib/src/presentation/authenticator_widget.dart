@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/lock_cubit.dart';
@@ -5,7 +7,7 @@ import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
-class AuthenticatorWidget extends StatelessWidget {
+class AuthenticatorWidget extends StatefulWidget {
   final Authenticator authenticator;
   final Widget child;
 
@@ -14,22 +16,53 @@ class AuthenticatorWidget extends StatelessWidget {
     required this.authenticator,
     required this.child,
   }) : super(key: key);
+
+  @override
+  _AuthenticatorWidgetState createState() => _AuthenticatorWidgetState();
+}
+
+class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
+  late final StreamSubscription lockSubscription;
+  OverlayEntry? overlayEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    lockSubscription = widget.authenticator.lockState.listen((event) {
+      event.when(
+        unlocked: () {
+          overlayEntry?.remove();
+          overlayEntry = null;
+        },
+        locked: (biometricAvailable) {
+          if (overlayEntry == null) {
+            overlayEntry = OverlayEntry(
+              opaque: true,
+              builder: (context) => LockScreen(
+                authenticator: widget.authenticator,
+              ),
+            );
+            Overlay.of(context)?.insert(overlayEntry!);
+          }
+        },
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    lockSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<LockState>(
-      stream: authenticator.lockState,
+      stream: widget.authenticator.lockState,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final data = snapshot.data;
-          if (data != null) {
-            return data.when(
-              unlocked: () => child,
-              locked: (_) => LockScreen(authenticator: authenticator),
-            );
-          }
-          return child;
+          return widget.child;
         }
-
         // TODO: Should be a little splash screen instead
         return const Center(child: CircularProgressIndicator());
       },
@@ -47,13 +80,6 @@ class LockScreen extends StatefulWidget {
 }
 
 class _LockScreenState extends State<LockScreen> {
-  final focusNode = FocusNode();
-  @override
-  void initState() {
-    super.initState();
-    focusNode.requestFocus();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -68,7 +94,6 @@ class _LockScreenState extends State<LockScreen> {
                 PinInputWidget(
                   value: state.pin,
                   pinLength: widget.authenticator.pinLength,
-                  focusNode: focusNode,
                   onInput: (pin) {
                     BlocProvider.of<LockCubit>(context).enterPin(pin);
                   },
