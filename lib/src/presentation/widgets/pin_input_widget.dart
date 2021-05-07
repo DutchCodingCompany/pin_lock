@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
-typedef PinInputBuilder = Widget Function(int index);
-typedef FilledPinInputBuilder = Widget Function(int index, String text);
+enum InputFieldState { empty, focused, filled }
+typedef PinInputBuilder = Widget Function(
+  int index,
+  InputFieldState state,
+  String? character,
+);
 
 class PinInputWidget extends StatefulWidget {
   final String value;
@@ -10,9 +14,7 @@ class PinInputWidget extends StatefulWidget {
   final FocusNode? nextFocusNode;
   final Function(String) onInput;
 
-  final PinInputBuilder? emptyNodeBuilder;
-  final PinInputBuilder? focusedNodeBuilder;
-  final FilledPinInputBuilder? filledPinInputBuilder;
+  final PinInputBuilder? inputNodeBuilder;
 
   PinInputWidget({
     Key? key,
@@ -20,9 +22,7 @@ class PinInputWidget extends StatefulWidget {
     required this.pinLength,
     FocusNode? focusNode,
     required this.onInput,
-    this.emptyNodeBuilder,
-    this.focusedNodeBuilder,
-    this.filledPinInputBuilder,
+    this.inputNodeBuilder,
     this.nextFocusNode,
   })  : focusNode = focusNode ?? FocusNode(),
         super(key: key);
@@ -56,31 +56,28 @@ class _PinInputWidgetState extends State<PinInputWidget> {
             widget.pinLength,
             (index) {
               if (index == selectedIndex && widget.focusNode.hasFocus) {
-                return widget.focusedNodeBuilder != null
-                    ? widget.focusedNodeBuilder!.call(index)
-                    : const Card(
-                        elevation: 24,
-                        shape: CircleBorder(),
-                        child: SizedBox(width: _nodeSize, height: _nodeSize),
-                      );
-              }
-              if (index < selectedIndex) {
-                return widget.filledPinInputBuilder != null
-                    ? widget.filledPinInputBuilder!(index, widget.value[index])
-                    : const Card(
-                        elevation: 4,
-                        color: Colors.blue,
-                        shape: CircleBorder(),
-                        child: SizedBox(width: _nodeSize, height: _nodeSize),
-                      );
-              }
-              return widget.emptyNodeBuilder != null
-                  ? widget.emptyNodeBuilder!(index)
-                  : const Card(
-                      elevation: 4,
+                return widget.inputNodeBuilder?.call(index, InputFieldState.focused, null) ??
+                    const Card(
+                      elevation: 24,
                       shape: CircleBorder(),
                       child: SizedBox(width: _nodeSize, height: _nodeSize),
                     );
+              }
+              if (index < selectedIndex) {
+                return widget.inputNodeBuilder?.call(index, InputFieldState.filled, controller.text[index]) ??
+                    const Card(
+                      elevation: 4,
+                      color: Colors.blue,
+                      shape: CircleBorder(),
+                      child: SizedBox(width: _nodeSize, height: _nodeSize),
+                    );
+              }
+              return widget.inputNodeBuilder?.call(index, InputFieldState.empty, null) ??
+                  const Card(
+                    elevation: 4,
+                    shape: CircleBorder(),
+                    child: SizedBox(width: _nodeSize, height: _nodeSize),
+                  );
             },
           ),
         ),

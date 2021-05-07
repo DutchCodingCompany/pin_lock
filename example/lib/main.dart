@@ -11,8 +11,9 @@ import 'package:pin_lock/src/presentation/authenticator_widget.dart';
 import 'package:pin_lock/src/presentation/setup_authentication_widget.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
-Authenticator globalAuthenticator;
+late Authenticator globalAuthenticator;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPref = await SharedPreferences.getInstance();
@@ -28,7 +29,7 @@ Future<void> main() async {
 class MyApp extends StatefulWidget {
   final SharedPreferences sp;
 
-  const MyApp({Key key, @required this.sp}) : super(key: key);
+  const MyApp({Key? key, required this.sp}) : super(key: key);
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -65,9 +66,29 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        textTheme: TextTheme(
+          bodyText2: TextStyle(color: color),
+        ),
+      ),
       home: Builder(
         builder: (navContext) => AuthenticatorWidget(
           authenticator: globalAuthenticator,
+          inputNodeBuilder: (index, state, text) => InputField(state: state),
+          lockScreenBuilder: (pinInputWidget, isLoading, error) => SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Fill in your pincode'),
+                pinInputWidget,
+                if (error != null)
+                  Text(
+                    error.toString(),
+                    style: const TextStyle(color: Colors.red),
+                  )
+              ],
+            ),
+          ),
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Plugin example app'),
@@ -87,6 +108,40 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
+    );
+  }
+}
+
+const Color color = Color(0xFF474854);
+
+class InputField extends StatelessWidget {
+  final InputFieldState state;
+  const InputField({
+    Key? key,
+    required this.state,
+  }) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 40,
+      width: 46,
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color, width: state == InputFieldState.focused ? 4 : 1),
+      ),
+      child: state == InputFieldState.filled
+          ? Center(
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                ),
+              ),
+            )
+          : Container(),
     );
   }
 }

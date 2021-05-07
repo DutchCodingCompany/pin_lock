@@ -4,17 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/lock_cubit.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
+import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
 class AuthenticatorWidget extends StatefulWidget {
   final Authenticator authenticator;
   final Widget child;
+  final LockScreenBuilder lockScreenBuilder;
+  final PinInputBuilder? inputNodeBuilder;
 
   const AuthenticatorWidget({
     Key? key,
     required this.authenticator,
     required this.child,
+    required this.lockScreenBuilder,
+    this.inputNodeBuilder,
   }) : super(key: key);
 
   @override
@@ -38,8 +43,10 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
           if (overlayEntry == null) {
             overlayEntry = OverlayEntry(
               opaque: true,
-              builder: (context) => LockScreen(
+              builder: (context) => _LockScreen(
                 authenticator: widget.authenticator,
+                builder: widget.lockScreenBuilder,
+                inputNodeBuilder: widget.inputNodeBuilder,
               ),
             );
             Overlay.of(context)?.insert(overlayEntry!);
@@ -70,41 +77,41 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   }
 }
 
-class LockScreen extends StatefulWidget {
+typedef LockScreenBuilder = Widget Function(
+  Widget pinInputWidget,
+  bool isLoading,
+  LocalAuthFailure? error,
+);
+
+class _LockScreen extends StatelessWidget {
   final Authenticator authenticator;
+  final LockScreenBuilder builder;
+  final PinInputBuilder? inputNodeBuilder;
 
-  const LockScreen({Key? key, required this.authenticator}) : super(key: key);
+  const _LockScreen({
+    Key? key,
+    required this.authenticator,
+    required this.builder,
+    this.inputNodeBuilder,
+  }) : super(key: key);
 
-  @override
-  _LockScreenState createState() => _LockScreenState();
-}
-
-class _LockScreenState extends State<LockScreen> {
   @override
   Widget build(BuildContext context) {
     return Material(
       child: BlocProvider<LockCubit>(
-        create: (context) => LockCubit(widget.authenticator),
+        create: (context) => LockCubit(authenticator),
         child: BlocBuilder<LockCubit, LockScreenState>(
-          builder: (context, state) => SafeArea(
-            child: Column(
-              children: [
-                const Text('the app is locked'),
-                const Text('enter pin'),
-                PinInputWidget(
-                  value: state.pin,
-                  pinLength: widget.authenticator.pinLength,
-                  onInput: (pin) {
-                    BlocProvider.of<LockCubit>(context).enterPin(pin);
-                  },
-                ),
-                if (state.error != null)
-                  Text(
-                    state.error.toString(),
-                    style: const TextStyle(color: Colors.red),
-                  )
-              ],
+          builder: (context, state) => builder(
+            PinInputWidget(
+              value: state.pin,
+              pinLength: authenticator.pinLength,
+              onInput: (pin) {
+                BlocProvider.of<LockCubit>(context).enterPin(pin);
+              },
+              inputNodeBuilder: inputNodeBuilder,
             ),
+            state.isLoading,
+            state.error,
           ),
         ),
       ),
