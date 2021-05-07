@@ -7,10 +7,10 @@ import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
-class SetupAuthenticationWidget extends StatelessWidget {
+class AuthenticationSetupWidget extends StatelessWidget {
   final Authenticator authenticator;
 
-  const SetupAuthenticationWidget({Key? key, required this.authenticator}) : super(key: key);
+  const AuthenticationSetupWidget({Key? key, required this.authenticator}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return BlocProvider<SetuplocalauthCubit>(

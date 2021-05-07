@@ -8,7 +8,7 @@ import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/presentation/authenticator_widget.dart';
-import 'package:pin_lock/src/presentation/setup_authentication_widget.dart';
+import 'package:pin_lock/src/presentation/authentication_setup_widget.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
@@ -153,7 +153,7 @@ class SetupAuthWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: SetupAuthenticationWidget(
+      body: AuthenticationSetupWidget(
         authenticator: globalAuthenticator,
       ),
     );
