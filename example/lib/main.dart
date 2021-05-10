@@ -27,25 +27,19 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
-    WidgetsBinding.instance?.addObserver(this);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    globalAuthenticator.notifyAppStateChanged(state);
+    WidgetsBinding.instance?.addObserver(globalAuthenticator);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance?.removeObserver(globalAuthenticator);
     super.dispose();
   }
 

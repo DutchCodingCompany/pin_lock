@@ -14,10 +14,11 @@ import 'package:pin_lock/src/repositories/pin_repository.dart';
 
 // TODO: Should a fallback pin be required?
 
-abstract class Authenticator {
+abstract class Authenticator with WidgetsBindingObserver {
   int get maxRetries;
   Duration get lockedOutDuration;
   int get pinLength;
+  Duration get lockAfterDuration;
 
   Stream<LockState> get lockState;
 
@@ -70,23 +71,21 @@ abstract class Authenticator {
   /// [LocalAuthFailure] if it fails
   Future<Either<LocalAuthFailure, bool>> unlockWithBiometrics({required String userFacingExplanation});
 
-  /// Notify Authenticator that the app is in the background or has been resumed
-  Future<void> notifyAppStateChanged(AppLifecycleState state);
-
   /// -- Helpers --
 
   /// [BiometricMethod]s can be used to show the appropriate icons in the UI
   Future<List<BiometricMethod>> getAvailableBiometricMethods();
-
 }
 
-class AuthenticatorImpl implements Authenticator {
+class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   @override
   final Duration lockedOutDuration;
   @override
   final int maxRetries;
   @override
   final int pinLength;
+  @override
+  final Duration lockAfterDuration;
 
   final LocalAuthenticationRepository _repository;
   final LocalAuthentication _biometricAuth;
@@ -110,6 +109,7 @@ class AuthenticatorImpl implements Authenticator {
     this._lockController, {
     this.maxRetries = 5,
     this.lockedOutDuration = const Duration(minutes: 5),
+    this.lockAfterDuration = const Duration(seconds: 5),
     this.pinLength = 4,
     required this.userId,
   }) {
@@ -308,33 +308,6 @@ class AuthenticatorImpl implements Authenticator {
     );
   }
 
-  @override
-  Future<void> notifyAppStateChanged(AppLifecycleState state) async {
-    if (!(await isPinAuthenticationEnabled())) {
-      return;
-    }
-    const allowedTime = 5000;
-    switch (state) {
-      case AppLifecycleState.resumed:
-        final lastActive = await _repository.getPausedTimestamp();
-        if (lastActive != null) {
-          final now = DateTime.now();
-          if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch > allowedTime) {
-            _lockController.lock(isBiometricAvailable: await _supportsBiometricAuthentication());
-          }
-        }
-        break;
-      case AppLifecycleState.inactive:
-        if (_lastState != AppLifecycleState.paused) {
-          _repository.savePausedTimestamp(DateTime.now());
-        }
-        break;
-      default:
-        break;
-    }
-    _lastState = state;
-  }
-
   /// -- Helpers --
 
   Future<bool> _supportsBiometricAuthentication() {
@@ -359,6 +332,44 @@ class AuthenticatorImpl implements Authenticator {
       }
     }
     return methods;
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+
+    // don't do anything if pin is disabled
+    if (!(await isPinAuthenticationEnabled())) {
+      return;
+    }
+
+    switch (state) {
+      case AppLifecycleState.inactive:
+
+        /// When the app is [paused], it first goes to [inactive] before continuing to [resumed]
+        /// Ensure that the paused timestamp is not saved just before the app becomes [resumed]
+        if (_lastState != AppLifecycleState.paused) {
+          _repository.savePausedTimestamp(DateTime.now());
+        }
+        break;
+      case AppLifecycleState.resumed:
+
+        /// Once app is back in foreground and responding to user input, check if it has been
+        /// inactive for more than [lockAfterDuration]
+        final lastActive = await _repository.getPausedTimestamp();
+        if (lastActive != null) {
+          final now = DateTime.now();
+          if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch > lockAfterDuration.inMilliseconds) {
+            _lockController.lock(isBiometricAvailable: await _supportsBiometricAuthentication());
+          }
+        }
+        break;
+      default:
+        break;
+    }
+
+    /// Keep track of the last known state
+    _lastState = state;
   }
 }
 
