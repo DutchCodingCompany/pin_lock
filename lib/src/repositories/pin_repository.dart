@@ -36,6 +36,15 @@ abstract class LocalAuthenticationRepository {
 
   /// Clears the list of failed attempts [ofUser]
   Future<void> resetFailedAttemptCount({required UserId ofUser});
+
+  /// Save the timestamp when the app became paused
+  Future<void> savePausedTimestamp(DateTime time);
+
+  /// Get timestamp of when the app became paused
+  Future<DateTime?> getPausedTimestamp();
+
+  /// Clear the last paused timestamp, e.g., when the app has been successfully unlocked
+  Future<void> clearLastPausedTimestamp();
 }
 
 class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository {
@@ -47,6 +56,8 @@ class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository
   SPKey _keyBoolBiometricsEnabled(UserId userId) => SPKey('biometric_enabled$userId');
   SPKey _keyStringPin(UserId userId) => SPKey('pin$userId');
   SPKey _keyListFailedAttempts(UserId userId) => SPKey('failed_attempts$userId');
+
+  static const String _keyPausedTimestamp = 'key_paused';
 
   @override
   Future<bool?> isPinAuthenticationEnabled({required UserId userId}) async {
@@ -125,5 +136,25 @@ class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository
   @override
   Future<void> resetFailedAttemptCount({required UserId ofUser}) async {
     sp.remove(_keyListFailedAttempts(ofUser).value);
+  }
+
+  @override
+  Future<void> savePausedTimestamp(DateTime time) async {
+    await sp.setString(_keyPausedTimestamp, time.toString());
+  }
+
+  @override
+  Future<void> clearLastPausedTimestamp() async {
+    await sp.remove(_keyPausedTimestamp);
+  }
+
+  @override
+  Future<DateTime?> getPausedTimestamp() async {
+    final dateString = sp.getString(_keyPausedTimestamp);
+    if (dateString != null) {
+      final date = DateTime.tryParse(dateString);
+      return date;
+    }
+    return null;
   }
 }

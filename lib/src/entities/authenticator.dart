@@ -3,33 +3,25 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:local_auth/error_codes.dart' as biometric_error;
 import 'package:local_auth/local_auth.dart';
+import 'package:pin_lock/src/entities/biometric_availability.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
-import 'package:local_auth/error_codes.dart' as biometric_error;
-import 'package:pin_lock/src/entities/biometric_availability.dart';
 
 // TODO: Should a fallback pin be required?
 
 abstract class Authenticator {
-  final int maxRetries;
-  final Duration lockedOutDuration;
-  final int pinLength;
+  int get maxRetries;
+  Duration get lockedOutDuration;
+  int get pinLength;
 
   Stream<LockState> get lockState;
 
   UserId get userId;
-
-  // TODO: Figure out what a constructor should do
-  @mustCallSuper
-  const Authenticator({
-    this.maxRetries = 5,
-    this.lockedOutDuration = const Duration(minutes: 5),
-    this.pinLength = 4,
-  });
 
   /// -- Setup --
 
@@ -76,18 +68,17 @@ abstract class Authenticator {
 
   /// Triggers the OS's biometric authentication and returns [true] if authentication is successful
   /// [LocalAuthFailure] if it fails
-  ///
   Future<Either<LocalAuthFailure, bool>> unlockWithBiometrics({required String userFacingExplanation});
+
+  /// Notify Authenticator that the app is in the background or has been resumed
+  Future<void> notifyAppStateChanged(AppLifecycleState state);
 
   /// -- Helpers --
 
   /// [BiometricMethod]s can be used to show the appropriate icons in the UI
   Future<List<BiometricMethod>> getAvailableBiometricMethods();
 
-  // TODO: App in background events + time tracking
 }
-
-// TODO: Material app that checks with the [Authenticator] if the screen should be locked
 
 class AuthenticatorImpl implements Authenticator {
   @override
@@ -101,6 +92,8 @@ class AuthenticatorImpl implements Authenticator {
   final LocalAuthentication _biometricAuth;
 
   final LockController _lockController;
+
+  AppLifecycleState? _lastState;
 
   @override
   Stream<LockState> get lockState {
@@ -282,6 +275,7 @@ class AuthenticatorImpl implements Authenticator {
       await _repository.resetFailedAttemptCount(ofUser: userId);
     }
     _lockController.unlock();
+    _repository.clearLastPausedTimestamp();
     return const Right(unit);
   }
 
@@ -312,6 +306,33 @@ class AuthenticatorImpl implements Authenticator {
         return const Left(LocalAuthFailure.notAvailable());
       },
     );
+  }
+
+  @override
+  Future<void> notifyAppStateChanged(AppLifecycleState state) async {
+    if (!(await isPinAuthenticationEnabled())) {
+      return;
+    }
+    const allowedTime = 5000;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        final lastActive = await _repository.getPausedTimestamp();
+        if (lastActive != null) {
+          final now = DateTime.now();
+          if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch > allowedTime) {
+            _lockController.lock(isBiometricAvailable: await _supportsBiometricAuthentication());
+          }
+        }
+        break;
+      case AppLifecycleState.inactive:
+        if (_lastState != AppLifecycleState.paused) {
+          _repository.savePausedTimestamp(DateTime.now());
+        }
+        break;
+      default:
+        break;
+    }
+    _lastState = state;
   }
 
   /// -- Helpers --
