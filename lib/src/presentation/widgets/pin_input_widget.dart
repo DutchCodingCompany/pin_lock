@@ -1,31 +1,26 @@
 import 'package:flutter/material.dart';
-
-enum InputFieldState { empty, focused, filled }
-typedef PinInputBuilder = Widget Function(
-  int index,
-  InputFieldState state,
-  String? character,
-);
+import 'package:pin_lock/src/presentation/builders.dart';
 
 class PinInputWidget extends StatefulWidget {
   final String value;
   final int pinLength;
-  late final FocusNode focusNode;
+  final FocusNode? focusNode;
   final FocusNode? nextFocusNode;
   final Function(String) onInput;
+  final bool autofocus;
 
   final PinInputBuilder? inputNodeBuilder;
 
-  PinInputWidget({
+  const PinInputWidget({
     Key? key,
     required this.value,
     required this.pinLength,
-    FocusNode? focusNode,
     required this.onInput,
+    this.focusNode,
     this.inputNodeBuilder,
     this.nextFocusNode,
-  })  : focusNode = focusNode ?? FocusNode(),
-        super(key: key);
+    this.autofocus = false,
+  }) : super(key: key);
 
   @override
   _PinInputWidgetState createState() => _PinInputWidgetState();
@@ -33,10 +28,15 @@ class PinInputWidget extends StatefulWidget {
 
 class _PinInputWidgetState extends State<PinInputWidget> {
   late final TextEditingController controller;
+  late final FocusNode focusNode;
   @override
   void initState() {
     super.initState();
     controller = TextEditingController(text: widget.value);
+    focusNode = widget.focusNode ?? FocusNode();
+    if (widget.autofocus) {
+      focusNode.requestFocus();
+    }
   }
 
   static const double _nodeSize = 32;
@@ -55,8 +55,8 @@ class _PinInputWidgetState extends State<PinInputWidget> {
           children: List.generate(
             widget.pinLength,
             (index) {
-              if (index == selectedIndex && widget.focusNode.hasFocus) {
-                return widget.inputNodeBuilder?.call(index, InputFieldState.focused, null) ??
+              if (index == selectedIndex && focusNode.hasFocus == true) {
+                return widget.inputNodeBuilder?.call(index, InputFieldState.focused) ??
                     const Card(
                       elevation: 24,
                       shape: CircleBorder(),
@@ -64,7 +64,7 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                     );
               }
               if (index < selectedIndex) {
-                return widget.inputNodeBuilder?.call(index, InputFieldState.filled, controller.text[index]) ??
+                return widget.inputNodeBuilder?.call(index, InputFieldState.filled) ??
                     const Card(
                       elevation: 4,
                       color: Colors.blue,
@@ -72,7 +72,7 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                       child: SizedBox(width: _nodeSize, height: _nodeSize),
                     );
               }
-              return widget.inputNodeBuilder?.call(index, InputFieldState.empty, null) ??
+              return widget.inputNodeBuilder?.call(index, InputFieldState.empty) ??
                   const Card(
                     elevation: 4,
                     shape: CircleBorder(),
@@ -85,11 +85,12 @@ class _PinInputWidgetState extends State<PinInputWidget> {
           opacity: 0,
           child: TextField(
             controller: controller,
-            focusNode: widget.focusNode,
+            focusNode: focusNode,
             keyboardType: TextInputType.number,
+            maxLength: widget.pinLength,
             onChanged: (text) async {
               widget.onInput(text);
-              if (text.length == widget.pinLength && widget.focusNode.hasFocus) {
+              if (text.length == widget.pinLength && focusNode.hasFocus == true) {
                 widget.nextFocusNode?.requestFocus();
               }
             },

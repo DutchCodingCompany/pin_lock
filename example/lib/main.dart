@@ -4,14 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pin_lock/pin_lock.dart';
-import 'package:pin_lock/src/entities/authenticator.dart';
-import 'package:pin_lock/src/entities/lock_controller.dart';
-import 'package:pin_lock/src/entities/value_objects.dart';
-import 'package:pin_lock/src/presentation/authenticator_widget.dart';
-import 'package:pin_lock/src/presentation/authentication_setup_widget.dart';
-import 'package:pin_lock/src/repositories/pin_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
 late Authenticator globalAuthenticator;
 Future<void> main() async {
@@ -74,7 +67,7 @@ class _MyAppState extends State<MyApp> {
       home: Builder(
         builder: (navContext) => AuthenticatorWidget(
           authenticator: globalAuthenticator,
-          inputNodeBuilder: (index, state, text) => InputField(state: state),
+          inputNodeBuilder: (index, state) => InputField(state: state),
           lockScreenBuilder: (pinInputWidget, isLoading, error) => SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -155,6 +148,59 @@ class SetupAuthWidget extends StatelessWidget {
       appBar: AppBar(),
       body: AuthenticationSetupWidget(
         authenticator: globalAuthenticator,
+        pinInputBuilder: (index, state) => InputField(state: state),
+        overviewBuilder: (config) => Center(
+          child: config.isLoading
+              ? CircularProgressIndicator()
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      if (config.isPinEnabled != null)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Pin authentication is ${config.isPinEnabled! ? 'enabled' : 'disabled'}'),
+                            TextButton(
+                              onPressed: config.onTogglePin,
+                              child: Text(config.isPinEnabled! ? 'Disable' : 'Enable'),
+                            ),
+                          ],
+                        ),
+                      if (config.isPinEnabled == true && config.isBiometricAuthAvailable != null)
+                        TextButton(
+                          onPressed: config.onPasswordChangeRequested,
+                          child: const Text('change passcode'),
+                        ),
+                    ],
+                  ),
+                ),
+        ),
+        enablingWidget: (configuration) => Center(
+          child: Column(
+            children: [
+              configuration.pinInputWidget,
+              configuration.pinConfirmationWidget,
+              if (configuration.error != null) Text(configuration.error.toString()),
+              if (configuration.canSubmitChange)
+                TextButton(
+                  onPressed: configuration.onSubmitChange,
+                  child: const Text('Save'),
+                )
+            ],
+          ),
+        ),
+        disablingWidget: (configuration) => Center(
+          child: Column(
+            children: [
+              Text('Enter your pin to disable pin authentication'),
+              configuration.pinInputWidget,
+              if (configuration.error != null) Text(configuration.error.toString()),
+              if (configuration.canSubmitChange)
+                TextButton(onPressed: configuration.onChangeSubmitted, child: Text('Save'))
+            ],
+          ),
+        ),
       ),
     );
   }

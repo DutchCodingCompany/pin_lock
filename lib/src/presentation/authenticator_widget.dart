@@ -4,23 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/lock_cubit.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
-import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
+import 'package:pin_lock/src/presentation/builders.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
 class AuthenticatorWidget extends StatefulWidget {
   final Authenticator authenticator;
   final Widget child;
   final LockScreenBuilder lockScreenBuilder;
+  final SplashScreenBuilder? splashScreenBuilder;
   final PinInputBuilder? inputNodeBuilder;
 
-  const AuthenticatorWidget({
-    Key? key,
-    required this.authenticator,
-    required this.child,
-    required this.lockScreenBuilder,
-    this.inputNodeBuilder,
-  }) : super(key: key);
+  const AuthenticatorWidget(
+      {Key? key,
+      required this.authenticator,
+      required this.child,
+      required this.lockScreenBuilder,
+      this.inputNodeBuilder,
+      this.splashScreenBuilder,
+      })
+      : super(key: key);
 
   @override
   _AuthenticatorWidgetState createState() => _AuthenticatorWidgetState();
@@ -70,18 +73,11 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
         if (snapshot.hasData) {
           return widget.child;
         }
-        // TODO: Should be a little splash screen instead
-        return const Center(child: CircularProgressIndicator());
+        return widget.splashScreenBuilder?.call() ?? const Center(child: CircularProgressIndicator());
       },
     );
   }
 }
-
-typedef LockScreenBuilder = Widget Function(
-  Widget pinInputWidget,
-  bool isLoading,
-  LocalAuthFailure? error,
-);
 
 class _LockScreen extends StatelessWidget {
   final Authenticator authenticator;
