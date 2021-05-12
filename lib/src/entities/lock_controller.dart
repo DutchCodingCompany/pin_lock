@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:pin_lock/src/entities/lock_state.dart';
+import 'package:pin_lock/src/entities/value_objects.dart';
 
 class LockController {
   late final Stream<LockState> state;
@@ -10,8 +11,8 @@ class LockController {
     state = _streamController.stream;
   }
 
-  void lock({required bool isBiometricAvailable}) {
-    _streamController.add(Locked(isBiometricAvailable: isBiometricAvailable));
+  void lock({required List<BiometricMethod> availableMethods}) {
+    _streamController.add(Locked(availableBiometricMethods: availableMethods));
   }
 
   void unlock() {

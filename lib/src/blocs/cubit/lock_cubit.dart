@@ -18,6 +18,11 @@ class LockCubit extends Cubit<LockScreenState> {
       );
     }
   }
+
+  Future<void> unlockWithBiometrics(String userFacingExplanation) async {
+    final result = await _authenticator.unlockWithBiometrics(userFacingExplanation: userFacingExplanation);
+    result.fold((l) => emit(LockScreenState(pin: state.pin, error: l)), (r) => null);
+  }
 }
 
 class LockScreenState extends Equatable {

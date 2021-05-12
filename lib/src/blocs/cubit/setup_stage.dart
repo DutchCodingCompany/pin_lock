@@ -11,6 +11,7 @@ class SetupStage with _$SetupStage {
     bool? isPinAuthEnabled,
     bool? isBiometricAuthAvailable,
     bool? isBiometricAuthEnabled,
+    LocalAuthFailure? error,
   }) = Base;
 
   const factory SetupStage.enabling({

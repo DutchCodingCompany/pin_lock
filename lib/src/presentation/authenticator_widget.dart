@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pin_lock/pin_lock.dart';
 import 'package:pin_lock/src/blocs/cubit/lock_cubit.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
@@ -14,16 +15,17 @@ class AuthenticatorWidget extends StatefulWidget {
   final LockScreenBuilder lockScreenBuilder;
   final SplashScreenBuilder? splashScreenBuilder;
   final PinInputBuilder? inputNodeBuilder;
+  final String userFacingBiometricAuthenticationMessage;
 
-  const AuthenticatorWidget(
-      {Key? key,
-      required this.authenticator,
-      required this.child,
-      required this.lockScreenBuilder,
-      this.inputNodeBuilder,
-      this.splashScreenBuilder,
-      })
-      : super(key: key);
+  const AuthenticatorWidget({
+    Key? key,
+    required this.authenticator,
+    required this.child,
+    required this.lockScreenBuilder,
+    required this.userFacingBiometricAuthenticationMessage,
+    this.inputNodeBuilder,
+    this.splashScreenBuilder,
+  }) : super(key: key);
 
   @override
   _AuthenticatorWidgetState createState() => _AuthenticatorWidgetState();
@@ -42,7 +44,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
           overlayEntry?.remove();
           overlayEntry = null;
         },
-        locked: (biometricAvailable) {
+        locked: (avilableBiometricMethods) {
           if (overlayEntry == null) {
             overlayEntry = OverlayEntry(
               opaque: true,
@@ -50,6 +52,8 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
                 authenticator: widget.authenticator,
                 builder: widget.lockScreenBuilder,
                 inputNodeBuilder: widget.inputNodeBuilder,
+                availableMethods: avilableBiometricMethods,
+                userFacingMessage: widget.userFacingBiometricAuthenticationMessage,
               ),
             );
             Overlay.of(context)?.insert(overlayEntry!);
@@ -83,11 +87,15 @@ class _LockScreen extends StatelessWidget {
   final Authenticator authenticator;
   final LockScreenBuilder builder;
   final PinInputBuilder? inputNodeBuilder;
+  final List<BiometricMethod> availableMethods;
+  final String userFacingMessage;
 
   const _LockScreen({
     Key? key,
     required this.authenticator,
     required this.builder,
+    required this.availableMethods,
+    required this.userFacingMessage,
     this.inputNodeBuilder,
   }) : super(key: key);
 
@@ -98,16 +106,22 @@ class _LockScreen extends StatelessWidget {
         create: (context) => LockCubit(authenticator),
         child: BlocBuilder<LockCubit, LockScreenState>(
           builder: (context, state) => builder(
-            PinInputWidget(
-              value: state.pin,
-              pinLength: authenticator.pinLength,
-              onInput: (pin) {
-                BlocProvider.of<LockCubit>(context).enterPin(pin);
+            LockScreenConfiguration(
+              pinInputWidget: PinInputWidget(
+                value: state.pin,
+                pinLength: authenticator.pinLength,
+                onInput: (pin) {
+                  BlocProvider.of<LockCubit>(context).enterPin(pin);
+                },
+                inputNodeBuilder: inputNodeBuilder,
+              ),
+              isLoading: state.isLoading,
+              error: state.error,
+              availableBiometricMethods: availableMethods,
+              onBiometricAuthenticationRequested: () {
+                BlocProvider.of<LockCubit>(context).unlockWithBiometrics(userFacingMessage);
               },
-              inputNodeBuilder: inputNodeBuilder,
             ),
-            state.isLoading,
-            state.error,
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_stage.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
+import 'package:pin_lock/src/entities/biometric_availability.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 
 class SetuplocalauthCubit extends Cubit<SetupStage> {
@@ -21,6 +22,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
             isBiometricAuthAvailable: true,
             isBiometricAuthEnabled: isEnabled,
             isLoading: false,
+            error: null,
           ));
         },
         unavailable: (_) {
@@ -29,12 +31,26 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
             isBiometricAuthEnabled: false,
             isBiometricAuthAvailable: false,
             isLoading: false,
+            error: null,
           ));
         },
       );
     } else {
       emit(const Base(isLoading: true));
       checkInitialState();
+    }
+  }
+
+  Future<void> toggleBiometricAuthentication() async {
+    final lastState = state;
+    if (lastState is Base) {
+      final biometricAvailability = await authenticator.getBiometricAuthenticationAvailability();
+      if (biometricAvailability is Available) {
+        final result = biometricAvailability.isEnabled
+            ? await authenticator.disableBiometricAuthentication()
+            : await authenticator.enableBiometricAuthentication();
+        result.fold((l) => emit(lastState.copyWith(error: l)), (r) => checkInitialState());
+      }
     }
   }
 

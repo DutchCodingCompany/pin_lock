@@ -32,7 +32,7 @@ public class SwiftPinLockPlugin: NSObject, FlutterPlugin {
                 let colorView = UIView(frame: window.bounds);
                 colorView.tag = _overlayViewTag
                 colorView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                colorView.backgroundColor = window.traitCollection.userInterfaceStyle == .dark ? UIColor.white : UIColor.black
+                colorView.backgroundColor = window.traitCollection.userInterfaceStyle == .dark ? UIColor.black : UIColor.white
                 window.addSubview(colorView)
                 window.bringSubviewToFront(colorView)
                 

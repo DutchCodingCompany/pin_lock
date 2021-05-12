@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_lock/src/entities/failure.dart';
+import 'package:pin_lock/src/entities/value_objects.dart';
 
 class OverviewConfiguration extends Equatable {
   final bool isLoading;
@@ -10,6 +11,8 @@ class OverviewConfiguration extends Equatable {
   final bool? isBiometricAuthEnabled;
   final VoidCallback onTogglePin;
   final VoidCallback onPasswordChangeRequested;
+  final VoidCallback onToggleBiometric;
+  final LocalAuthFailure? error;
 
   const OverviewConfiguration({
     required this.isPinEnabled,
@@ -18,6 +21,8 @@ class OverviewConfiguration extends Equatable {
     required this.onTogglePin,
     required this.onPasswordChangeRequested,
     required this.isLoading,
+    required this.onToggleBiometric,
+    required this.error,
   });
 
   @override
@@ -27,6 +32,8 @@ class OverviewConfiguration extends Equatable {
         isBiometricAuthEnabled,
         onTogglePin,
         onPasswordChangeRequested,
+        onToggleBiometric,
+        error,
       ];
 }
 
@@ -69,4 +76,29 @@ class DisablingPinConfiguration extends Equatable {
   });
   @override
   List<Object?> get props => [error, pinInputWidget, canSubmitChange, onChangeSubmitted];
+}
+
+class LockScreenConfiguration extends Equatable {
+  final Widget pinInputWidget;
+  final bool isLoading;
+  final LocalAuthFailure? error;
+  final List<BiometricMethod> availableBiometricMethods;
+  final VoidCallback onBiometricAuthenticationRequested;
+
+  const LockScreenConfiguration({
+    required this.pinInputWidget,
+    required this.isLoading,
+    required this.error,
+    required this.availableBiometricMethods,
+    required this.onBiometricAuthenticationRequested,
+  });
+
+  @override
+  List<Object?> get props => [
+        pinInputWidget,
+        isLoading,
+        error,
+        availableBiometricMethods,
+        onBiometricAuthenticationRequested,
+      ];
 }

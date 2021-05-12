@@ -50,16 +50,29 @@ class _MyAppState extends State<MyApp> {
       home: Builder(
         builder: (navContext) => AuthenticatorWidget(
           authenticator: globalAuthenticator,
+          userFacingBiometricAuthenticationMessage:
+              'Your data is locked for privacy reasons. Please authenticate to access it.',
           inputNodeBuilder: (index, state) => InputField(state: state),
-          lockScreenBuilder: (pinInputWidget, isLoading, error) => SafeArea(
+          lockScreenBuilder: (configuration) => SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('Fill in your pincode'),
-                pinInputWidget,
-                if (error != null)
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    children: [
+                      Expanded(child: configuration.pinInputWidget),
+                      IconButton(
+                        icon: Icon(Icons.fingerprint),
+                        onPressed: configuration.onBiometricAuthenticationRequested,
+                      )
+                    ],
+                  ),
+                ),
+                if (configuration.error != null)
                   Text(
-                    error.toString(),
+                    configuration.error.toString(),
                     style: const TextStyle(color: Colors.red),
                   )
               ],
@@ -149,6 +162,19 @@ class SetupAuthWidget extends StatelessWidget {
                             ),
                           ],
                         ),
+                      if (config.error != null) Text(config.error!.toString()),
+                      if (config.isPinEnabled == true && config.isBiometricAuthAvailable == true) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Unlock with biometrics'),
+                            TextButton(
+                              onPressed: config.onToggleBiometric,
+                              child: Text(config.isBiometricAuthEnabled == true ? 'Disable' : 'Enable'),
+                            ),
+                          ],
+                        )
+                      ],
                       if (config.isPinEnabled == true && config.isBiometricAuthAvailable != null)
                         TextButton(
                           onPressed: config.onPasswordChangeRequested,

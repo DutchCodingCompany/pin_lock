@@ -12,8 +12,6 @@ import 'package:pin_lock/src/entities/lock_state.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
 
-// TODO: Should a fallback pin be required?
-
 abstract class Authenticator with WidgetsBindingObserver {
   int get maxRetries;
   Duration get lockedOutDuration;
@@ -45,7 +43,6 @@ abstract class Authenticator with WidgetsBindingObserver {
 
   /// Enables biometric authentication for user.
   /// [Authenticator] will always first attempt to [unlockWithBiometrics]
-  // TODO: When checking the lock state and determining that it should be locked, maybe auto-fire unlockWithBiometrics as described above
   Future<Either<LocalAuthFailure, Unit>> enableBiometricAuthentication();
 
   /// Disables biometric authentication. If [requirePin] is true,
@@ -121,12 +118,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     if (!isEnabled) {
       _lockController.unlock();
     } else {
-      final biometricAvailablily = await getBiometricAuthenticationAvailability();
-      final shouldTryBiometrics = biometricAvailablily.when(
-        available: (isEnabled) => isEnabled,
-        unavailable: (_) => false,
-      );
-      _lockController.lock(isBiometricAvailable: shouldTryBiometrics);
+      _lockController.lock(availableMethods: await getAvailableBiometricMethods());
     }
   }
 
@@ -285,13 +277,12 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     return biometricAvailability.when(
       available: (isEnabled) async {
         if (!isEnabled) {
-          _lockController.lock(isBiometricAvailable: false);
+          _lockController.lock(availableMethods: const []);
           return const Left(LocalAuthFailure.notAvailable());
         }
         try {
           final isSuccessful = await _biometricAuth.authenticate(
             localizedReason: userFacingExplanation,
-            stickyAuth: true, // Hopefully this helps when enabling 'fixable' visit to settings
           );
           _lockController.unlock();
           return Right(isSuccessful);
@@ -302,7 +293,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         }
       },
       unavailable: (_) {
-        _lockController.lock(isBiometricAvailable: false);
+        _lockController.lock(availableMethods: const []);
         return const Left(LocalAuthFailure.notAvailable());
       },
     );
@@ -360,7 +351,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         if (lastActive != null) {
           final now = DateTime.now();
           if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch > lockAfterDuration.inMilliseconds) {
-            _lockController.lock(isBiometricAvailable: await _supportsBiometricAuthentication());
+            _lockController.lock(availableMethods: await getAvailableBiometricMethods());
           }
         }
         break;

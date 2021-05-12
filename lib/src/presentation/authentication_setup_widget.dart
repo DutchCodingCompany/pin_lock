@@ -41,6 +41,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
                     BlocProvider.of<SetuplocalauthCubit>(context).startDisablingPincode();
                   }
                 },
+                onToggleBiometric: () => bloc(context).toggleBiometricAuthentication(),
                 onPasswordChangeRequested: () {
                   BlocProvider.of<SetuplocalauthCubit>(context).startChangingPincode();
                 },
@@ -48,6 +49,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 isBiometricAuthAvailable: base.isBiometricAuthAvailable,
                 isBiometricAuthEnabled: base.isBiometricAuthEnabled,
                 isPinEnabled: base.isPinAuthEnabled,
+                error: base.error,
               ),
             );
           },
