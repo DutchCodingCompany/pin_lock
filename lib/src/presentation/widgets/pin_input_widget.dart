@@ -9,15 +9,15 @@ class PinInputWidget extends StatefulWidget {
   final Function(String) onInput;
   final bool autofocus;
 
-  final PinInputBuilder? inputNodeBuilder;
+  final PinInputBuilder inputNodeBuilder;
 
   const PinInputWidget({
     Key? key,
     required this.value,
     required this.pinLength,
     required this.onInput,
+    required this.inputNodeBuilder,
     this.focusNode,
-    this.inputNodeBuilder,
     this.nextFocusNode,
     this.autofocus = false,
   }) : super(key: key);
@@ -39,62 +39,52 @@ class _PinInputWidgetState extends State<PinInputWidget> {
     }
   }
 
-  static const double _nodeSize = 32;
-
   @override
   Widget build(BuildContext context) {
     if (controller.text != widget.value) {
       controller.text = widget.value;
     }
     final selectedIndex = widget.value.length;
-    return Stack(
-      alignment: Alignment.center,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            widget.pinLength,
-            (index) {
-              if (index == selectedIndex && focusNode.hasFocus == true) {
-                return widget.inputNodeBuilder?.call(index, InputFieldState.focused) ??
-                    const Card(
-                      elevation: 24,
-                      shape: CircleBorder(),
-                      child: SizedBox(width: _nodeSize, height: _nodeSize),
-                    );
-              }
-              if (index < selectedIndex) {
-                return widget.inputNodeBuilder?.call(index, InputFieldState.filled) ??
-                    const Card(
-                      elevation: 4,
-                      color: Colors.blue,
-                      shape: CircleBorder(),
-                      child: SizedBox(width: _nodeSize, height: _nodeSize),
-                    );
-              }
-              return widget.inputNodeBuilder?.call(index, InputFieldState.empty) ??
-                  const Card(
-                    elevation: 4,
-                    shape: CircleBorder(),
-                    child: SizedBox(width: _nodeSize, height: _nodeSize),
-                  );
-            },
-          ),
-        ),
-        Opacity(
-          opacity: 0,
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            keyboardType: TextInputType.number,
-            maxLength: widget.pinLength,
-            onChanged: (text) async {
-              widget.onInput(text);
-              if (text.length == widget.pinLength && focusNode.hasFocus == true) {
-                widget.nextFocusNode?.requestFocus();
-              }
-            },
-          ),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(
+                widget.pinLength,
+                (index) {
+                  if (index == selectedIndex && focusNode.hasFocus == true) {
+                    return widget.inputNodeBuilder(index, InputFieldState.focused);
+                  }
+                  if (index < selectedIndex) {
+                    return widget.inputNodeBuilder(index, InputFieldState.filled);
+                  }
+                  return widget.inputNodeBuilder(index, InputFieldState.empty);
+                },
+              ),
+            ),
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0,
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  keyboardType: TextInputType.number,
+                  maxLength: widget.pinLength,
+                  onChanged: (text) async {
+                    widget.onInput(text);
+                    if (text.length == widget.pinLength && focusNode.hasFocus == true) {
+                      widget.nextFocusNode?.requestFocus();
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

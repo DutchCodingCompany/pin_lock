@@ -78,6 +78,34 @@ class DisablingPinConfiguration extends Equatable {
   List<Object?> get props => [error, pinInputWidget, canSubmitChange, onChangeSubmitted];
 }
 
+class ChangingPinConfiguration extends Equatable {
+  final Widget oldPinInputWidget;
+  final Widget newPinInputWidget;
+  final Widget confirmNewPinInputWidget;
+  final LocalAuthFailure? error;
+  final bool canSubmitChange;
+  final VoidCallback onSubimtChange;
+
+  const ChangingPinConfiguration({
+    required this.oldPinInputWidget,
+    required this.newPinInputWidget,
+    required this.confirmNewPinInputWidget,
+    required this.error,
+    required this.canSubmitChange,
+    required this.onSubimtChange,
+  });
+
+  @override
+  List<Object?> get props => [
+        oldPinInputWidget,
+        newPinInputWidget,
+        confirmNewPinInputWidget,
+        error,
+        canSubmitChange,
+        onSubimtChange,
+      ];
+}
+
 class LockScreenConfiguration extends Equatable {
   final Widget pinInputWidget;
   final bool isLoading;

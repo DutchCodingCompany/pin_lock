@@ -209,7 +209,36 @@ class SetupAuthWidget extends StatelessWidget {
             ],
           ),
         ),
+        changingWidget: (configuration) => Column(
+          children: [
+            const Text('Enter current pin'),
+            configuration.oldPinInputWidget,
+            if (_isCurrentPinIssue(configuration.error))
+              Text(
+                configuration.error!.toString(),
+                style: const TextStyle(color: Colors.red),
+              ),
+            const Text('Enter new pin'),
+            configuration.newPinInputWidget,
+            const Text('confirm new pin'),
+            configuration.confirmNewPinInputWidget,
+            if (configuration.error != null && !_isCurrentPinIssue(configuration.error))
+              Text(
+                configuration.error!.toString(),
+                style: const TextStyle(color: Colors.red),
+              ),
+            if (configuration.canSubmitChange)
+              TextButton(
+                onPressed: configuration.onSubimtChange,
+                child: const Text('save'),
+              )
+          ],
+        ),
       ),
     );
+  }
+
+  bool _isCurrentPinIssue(LocalAuthFailure? error) {
+    return error is WrongPin || error is TooManyAttempts;
   }
 }

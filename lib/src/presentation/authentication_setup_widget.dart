@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_local_auth_cubit.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_stage.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
-import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/presentation/builders.dart';
 import 'package:pin_lock/src/presentation/widget_configurations.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
@@ -14,7 +13,8 @@ class AuthenticationSetupWidget extends StatelessWidget {
   final OverviewBuilder overviewBuilder;
   final EnablingPinWidgetBuilder enablingWidget;
   final DisablingPinWidgetBuilder disablingWidget;
-  final PinInputBuilder? pinInputBuilder;
+  final ChangingPinWidgetBuilder changingWidget;
+  final PinInputBuilder pinInputBuilder;
 
   const AuthenticationSetupWidget({
     Key? key,
@@ -22,7 +22,8 @@ class AuthenticationSetupWidget extends StatelessWidget {
     required this.overviewBuilder,
     required this.enablingWidget,
     required this.disablingWidget,
-    this.pinInputBuilder,
+    required this.changingWidget,
+    required this.pinInputBuilder,
   }) : super(key: key);
 
   @override
@@ -86,117 +87,34 @@ class AuthenticationSetupWidget extends StatelessWidget {
               onChangeSubmitted: () => bloc(context).disablePinAuthentication(),
             ),
           ),
-          changingPasscode: (s) => ChangingWidget(data: s),
+          changingPasscode: (s) => changingWidget(
+            ChangingPinConfiguration(
+              oldPinInputWidget: PinInputWidget(
+                inputNodeBuilder: pinInputBuilder,
+                pinLength: s.pinLength,
+                onInput: (text) => bloc(context).enterPinToChange(text),
+                value: s.currentPin,
+              ),
+              newPinInputWidget: PinInputWidget(
+                value: s.newPin,
+                pinLength: s.pinLength,
+                onInput: (text) => bloc(context).enterNewPin(text),
+                inputNodeBuilder: pinInputBuilder,
+              ),
+              confirmNewPinInputWidget: PinInputWidget(
+                  value: s.confirmationPin,
+                  pinLength: s.pinLength,
+                  onInput: (text) => bloc(context).pinConfirmationEntered(text),
+                  inputNodeBuilder: pinInputBuilder),
+              error: s.error,
+              canSubmitChange: s.canGoFurther,
+              onSubimtChange: () => bloc(context).changePin(),
+            ),
+          ),
         ),
       ),
     );
   }
 
   SetuplocalauthCubit bloc(BuildContext context) => BlocProvider.of<SetuplocalauthCubit>(context);
-}
-
-class ChangingWidget extends StatefulWidget {
-  final ChangingPasscode data;
-
-  const ChangingWidget({Key? key, required this.data}) : super(key: key);
-
-  @override
-  _ChangingWidgetState createState() => _ChangingWidgetState();
-}
-
-class _ChangingWidgetState extends State<ChangingWidget> {
-  late final FocusNode _currentPinFocusNode;
-  late final FocusNode _newPinFocusNode;
-  late final FocusNode _confirmPinFocusNode;
-  @override
-  void initState() {
-    super.initState();
-    _currentPinFocusNode = FocusNode()..requestFocus();
-    _newPinFocusNode = FocusNode();
-    _confirmPinFocusNode = FocusNode();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<SetuplocalauthCubit>(context);
-    return Column(
-      children: [
-        const Text('Enter current pin'),
-        PinInputWidget(
-          value: widget.data.currentPin,
-          pinLength: widget.data.pinLength,
-          focusNode: _currentPinFocusNode,
-          nextFocusNode: _newPinFocusNode,
-          onInput: (text) {
-            bloc.enterPinToChange(text);
-          },
-        ),
-        if (_isCurrentPinIssue(widget.data.error))
-          Text(
-            widget.data.error!.toString(),
-            style: const TextStyle(color: Colors.red),
-          ),
-        const Text('Enter new pin'),
-        PinInputWidget(
-          value: widget.data.newPin,
-          pinLength: widget.data.pinLength,
-          focusNode: _newPinFocusNode,
-          nextFocusNode: _confirmPinFocusNode,
-          onInput: (text) {
-            bloc.enterNewPin(text);
-          },
-        ),
-        const Text('confirm new pin'),
-        PinInputWidget(
-          value: widget.data.confirmationPin,
-          pinLength: widget.data.pinLength,
-          focusNode: _confirmPinFocusNode,
-          onInput: (text) {
-            bloc.enterConfirmationPin(text);
-          },
-        ),
-        if (widget.data.error != null && !_isCurrentPinIssue(widget.data.error))
-          Text(
-            widget.data.error!.toString(),
-            style: const TextStyle(color: Colors.red),
-          ),
-        if (widget.data.canGoFurther)
-          TextButton(
-            onPressed: () => bloc.changePin(),
-            child: const Text('save'),
-          )
-      ],
-    );
-  }
-
-  bool _isCurrentPinIssue(LocalAuthFailure? error) {
-    return error is WrongPin || error is TooManyAttempts;
-  }
-}
-
-class DisablingWidget extends StatelessWidget {
-  final Disabling data;
-
-  const DisablingWidget({Key? key, required this.data}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        PinInputWidget(
-          value: data.pin,
-          pinLength: data.pinLength,
-          focusNode: FocusNode()..requestFocus(),
-          onInput: (text) {
-            BlocProvider.of<SetuplocalauthCubit>(context).enterPinToDisable(text);
-          },
-        ),
-        if (data.error != null) Text(data.error.toString(), style: const TextStyle(color: Colors.red)),
-        TextButton(
-          onPressed:
-              data.canGoFurther ? () => BlocProvider.of<SetuplocalauthCubit>(context).disablePinAuthentication() : null,
-          child: const Text('save'),
-        ),
-      ],
-    );
-  }
 }

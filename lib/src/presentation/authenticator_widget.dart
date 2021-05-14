@@ -14,7 +14,7 @@ class AuthenticatorWidget extends StatefulWidget {
   final Widget child;
   final LockScreenBuilder lockScreenBuilder;
   final SplashScreenBuilder? splashScreenBuilder;
-  final PinInputBuilder? inputNodeBuilder;
+  final PinInputBuilder inputNodeBuilder;
   final String userFacingBiometricAuthenticationMessage;
 
   const AuthenticatorWidget({
@@ -23,7 +23,7 @@ class AuthenticatorWidget extends StatefulWidget {
     required this.child,
     required this.lockScreenBuilder,
     required this.userFacingBiometricAuthenticationMessage,
-    this.inputNodeBuilder,
+    required this.inputNodeBuilder,
     this.splashScreenBuilder,
   }) : super(key: key);
 
@@ -86,7 +86,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
 class _LockScreen extends StatelessWidget {
   final Authenticator authenticator;
   final LockScreenBuilder builder;
-  final PinInputBuilder? inputNodeBuilder;
+  final PinInputBuilder inputNodeBuilder;
   final List<BiometricMethod> availableMethods;
   final String userFacingMessage;
 
@@ -96,7 +96,7 @@ class _LockScreen extends StatelessWidget {
     required this.builder,
     required this.availableMethods,
     required this.userFacingMessage,
-    this.inputNodeBuilder,
+    required this.inputNodeBuilder,
   }) : super(key: key);
 
   @override
