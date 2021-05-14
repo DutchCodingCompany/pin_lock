@@ -118,7 +118,15 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     if (!isEnabled) {
       _lockController.unlock();
     } else {
-      _lockController.lock(availableMethods: await getAvailableBiometricMethods());
+      final biometric = await getBiometricAuthenticationAvailability();
+      biometric.when(
+        available: (enabled) async {
+          _lockController.lock(
+            availableMethods: enabled ? await getAvailableBiometricMethods() : const [],
+          );
+        },
+        unavailable: (_) => _lockController.lock(availableMethods: const []),
+      );
     }
   }
 
