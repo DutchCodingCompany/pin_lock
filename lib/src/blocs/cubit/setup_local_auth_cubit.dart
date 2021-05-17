@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_stage.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/biometric_availability.dart';
+import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 
 class SetuplocalauthCubit extends Cubit<SetupStage> {
@@ -15,26 +16,22 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
       emit(lastState.copyWith(isPinAuthEnabled: isPinAuthEnabled, isLoading: false));
 
       final biometrics = await authenticator.getBiometricAuthenticationAvailability();
-      biometrics.when(
-        available: (isEnabled) {
-          emit(lastState.copyWith(
-            isPinAuthEnabled: isPinAuthEnabled,
-            isBiometricAuthAvailable: true,
-            isBiometricAuthEnabled: isEnabled,
-            isLoading: false,
-            error: null,
-          ));
-        },
-        unavailable: (_) {
-          emit(lastState.copyWith(
-            isPinAuthEnabled: isPinAuthEnabled,
-            isBiometricAuthEnabled: false,
-            isBiometricAuthAvailable: false,
-            isLoading: false,
-            error: null,
-          ));
-        },
-      );
+      if (biometrics is Available) {
+        emit(lastState.copyWith(
+          isPinAuthEnabled: isPinAuthEnabled,
+          isBiometricAuthAvailable: true,
+          isBiometricAuthEnabled: biometrics.isEnabled,
+          isLoading: false,
+        ));
+      }
+      if (biometrics is Unavailable) {
+        emit(lastState.copyWith(
+          isPinAuthEnabled: isPinAuthEnabled,
+          isBiometricAuthEnabled: false,
+          isBiometricAuthAvailable: false,
+          isLoading: false,
+        ));
+      }
     } else {
       emit(const Base(isLoading: true));
       checkInitialState();
@@ -146,16 +143,23 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
       );
       result.fold(
         (l) {
-          l.maybeWhen(
-            tooManyAttempts: () => emit(lastState.copyWith(currentPin: '', error: l)),
-            wrongPin: () => emit(lastState.copyWith(currentPin: '', error: l)),
-            pinNotMatching: () => emit(lastState.copyWith(
-              newPin: '',
-              confirmationPin: '',
-              error: l,
-            )),
-            orElse: () => emit(lastState.copyWith(error: l)),
-          );
+          switch (l) {
+            case LocalAuthFailure.tooManyAttempts:
+              emit(lastState.copyWith(currentPin: '', error: l));
+              break;
+            case LocalAuthFailure.wrongPin:
+              emit(lastState.copyWith(currentPin: '', error: l));
+              break;
+            case LocalAuthFailure.pinNotMatching:
+              emit(lastState.copyWith(
+                newPin: '',
+                confirmationPin: '',
+                error: l,
+              ));
+              break;
+            default:
+              emit(lastState.copyWith(error: l));
+          }
         },
         (r) => checkInitialState(),
       );

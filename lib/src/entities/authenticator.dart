@@ -119,14 +119,14 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
       _lockController.unlock();
     } else {
       final biometric = await getBiometricAuthenticationAvailability();
-      biometric.when(
-        available: (enabled) async {
-          _lockController.lock(
-            availableMethods: enabled ? await getAvailableBiometricMethods() : const [],
-          );
-        },
-        unavailable: (_) => _lockController.lock(availableMethods: const []),
-      );
+      if (biometric is Available) {
+        _lockController.lock(
+          availableMethods: biometric.isEnabled ? await getAvailableBiometricMethods() : const [],
+        );
+      }
+      if (biometric is Unavailable) {
+        _lockController.lock(availableMethods: const []);
+      }
     }
   }
 
@@ -140,7 +140,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   Future<BiometricAvailability> getBiometricAuthenticationAvailability() async {
     final isSupported = await _supportsBiometricAuthentication();
     if (!isSupported) {
-      return const Unavailable(reason: LocalAuthFailure.notAvailable());
+      return const Unavailable(reason: LocalAuthFailure.notAvailable);
     }
     final storedValue = await _repository.isBiometricAuthenticationEnabled(userId: userId);
     return Available(isEnabled: storedValue ?? false);
@@ -155,16 +155,16 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }) async {
     final existingPin = await _repository.getPin(forUser: userId);
     if (existingPin != null) {
-      return const Left(LocalAuthFailure.alreadySetUp());
+      return const Left(LocalAuthFailure.alreadySetUp);
     }
     if (pin != confirmationPin) {
-      return const Left(LocalAuthFailure.pinNotMatching());
+      return const Left(LocalAuthFailure.pinNotMatching);
     }
     try {
       await _repository.enableLocalAuthentication(pin: pin, userId: userId);
       return const Right(unit);
     } catch (e) {
-      return const Left(LocalAuthFailure.unknown());
+      return const Left(LocalAuthFailure.unknown);
     }
   }
 
@@ -176,13 +176,13 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     }
     final correctPin = await _repository.getPin(forUser: userId);
     if (correctPin?.value != pin.value) {
-      return const Left(LocalAuthFailure.wrongPin());
+      return const Left(LocalAuthFailure.wrongPin);
     }
     try {
       await _repository.disableLocalAuthentication(userId: userId);
       return const Right(unit);
     } catch (e) {
-      return const Left(LocalAuthFailure.unknown());
+      return const Left(LocalAuthFailure.unknown);
     }
   }
 
@@ -190,18 +190,18 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   Future<Either<LocalAuthFailure, Unit>> enableBiometricAuthentication() async {
     final isBiometricSupported = await _biometricAuth.canCheckBiometrics;
     if (!isBiometricSupported) {
-      return const Left(LocalAuthFailure.notAvailable());
+      return const Left(LocalAuthFailure.notAvailable);
     }
     final availableMethods = await _biometricAuth.getAvailableBiometrics();
     if (availableMethods.isEmpty) {
-      return const Left(LocalAuthFailure.notAvailable());
+      return const Left(LocalAuthFailure.notAvailable);
     }
 
     try {
       await _repository.enableBiometricAuthentication(userId: userId);
       return const Right(unit);
     } catch (e) {
-      return const Left(LocalAuthFailure.unknown());
+      return const Left(LocalAuthFailure.unknown);
     }
   }
 
@@ -213,14 +213,14 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     if (requirePin) {
       final userPin = await _repository.getPin(forUser: userId);
       if (userPin?.value != pin?.value) {
-        return const Left(LocalAuthFailure.wrongPin());
+        return const Left(LocalAuthFailure.wrongPin);
       }
     }
     try {
       await _repository.disableBiometricAuthentication(userId: userId);
       return const Right(unit);
     } catch (e) {
-      return const Left(LocalAuthFailure.unknown());
+      return const Left(LocalAuthFailure.unknown);
     }
   }
 
@@ -233,20 +233,20 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }) async {
     final isEnabled = await isPinAuthenticationEnabled();
     if (!isEnabled) {
-      return const Left(LocalAuthFailure.unknown());
+      return const Left(LocalAuthFailure.unknown);
     }
     final unlockAttempt = await unlockWithPin(pin: oldPin);
     if (unlockAttempt.isLeft()) {
       return unlockAttempt;
     }
     if (newPin != newPinConfirmation) {
-      return const Left(LocalAuthFailure.pinNotMatching());
+      return const Left(LocalAuthFailure.pinNotMatching);
     }
     try {
       await _repository.setPin(newPin, forUser: userId);
       return const Right(unit);
     } catch (e) {
-      return const Left(LocalAuthFailure.unknown());
+      return const Left(LocalAuthFailure.unknown);
     }
   }
 
@@ -263,13 +263,13 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     if (failedAttemptsList.length > maxRetries) {
       // TODO: Return failure and time remaining maybe?
       // TODO: Should it increase the time if more wrong attempts are added?
-      return const Left(LocalAuthFailure.tooManyAttempts());
+      return const Left(LocalAuthFailure.tooManyAttempts);
     }
 
     final userPin = await _repository.getPin(forUser: userId);
     if (userPin?.value != pin.value) {
       await _repository.addFailedAttempt(DateTime.now(), forUser: userId);
-      return const Left(LocalAuthFailure.wrongPin());
+      return const Left(LocalAuthFailure.wrongPin);
     }
     if (failedAttemptsList.isNotEmpty) {
       await _repository.resetFailedAttemptCount(ofUser: userId);
@@ -282,29 +282,28 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   @override
   Future<Either<LocalAuthFailure, bool>> unlockWithBiometrics({required String userFacingExplanation}) async {
     final biometricAvailability = await getBiometricAuthenticationAvailability();
-    return biometricAvailability.when(
-      available: (isEnabled) async {
-        if (!isEnabled) {
-          _lockController.lock(availableMethods: const []);
-          return const Left(LocalAuthFailure.notAvailable());
-        }
-        try {
-          final isSuccessful = await _biometricAuth.authenticate(
-            localizedReason: userFacingExplanation,
-          );
-          _lockController.unlock();
-          return Right(isSuccessful);
-        } on PlatformException catch (e) {
-          return Left(e.toLocalAuthFailure());
-        } catch (e) {
-          return const Left(LocalAuthFailure.unknown());
-        }
-      },
-      unavailable: (_) {
+    if (biometricAvailability is Available) {
+      if (!biometricAvailability.isEnabled) {
         _lockController.lock(availableMethods: const []);
-        return const Left(LocalAuthFailure.notAvailable());
-      },
-    );
+        return const Left(LocalAuthFailure.notAvailable);
+      }
+      try {
+        final isSuccessful = await _biometricAuth.authenticate(
+          localizedReason: userFacingExplanation,
+        );
+        _lockController.unlock();
+        return Right(isSuccessful);
+      } on PlatformException catch (e) {
+        return Left(e.toLocalAuthFailure());
+      } catch (e) {
+        return const Left(LocalAuthFailure.unknown);
+      }
+    }
+    if (biometricAvailability is Unavailable) {
+      _lockController.lock(availableMethods: const []);
+      return const Left(LocalAuthFailure.notAvailable);
+    }
+    return const Left(LocalAuthFailure.unknown);
   }
 
   /// -- Helpers --
@@ -376,17 +375,17 @@ extension on PlatformException {
   LocalAuthFailure toLocalAuthFailure() {
     switch (code) {
       case biometric_error.lockedOut:
-        return const LocalAuthFailure.tooManyAttempts();
+        return LocalAuthFailure.tooManyAttempts;
       case biometric_error.permanentlyLockedOut:
-        return const LocalAuthFailure.permanentlyLockedOut();
+        return LocalAuthFailure.permanentlyLockedOut;
       case biometric_error.notAvailable:
-        return const LocalAuthFailure.notAvailable();
+        return LocalAuthFailure.notAvailable;
       case biometric_error.notEnrolled:
-        return const LocalAuthFailure.noFingerprintsAvailable();
+        return LocalAuthFailure.noFingerprintsAvailable;
       case biometric_error.otherOperatingSystem:
-        return const LocalAuthFailure.platformNotSupported();
+        return LocalAuthFailure.platformNotSupported;
       default:
-        return const LocalAuthFailure.unknown();
+        return LocalAuthFailure.unknown;
     }
   }
 }

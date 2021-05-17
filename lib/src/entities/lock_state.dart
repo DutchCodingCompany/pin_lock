@@ -1,10 +1,21 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:equatable/equatable.dart';
 import 'package:pin_lock/pin_lock.dart';
 
-part 'lock_state.freezed.dart';
+abstract class LockState extends Equatable {
+  const LockState();
+  @override
+  List<Object?> get props => [];
+}
 
-@freezed
-class LockState with _$LockState {
-  const factory LockState.unlocked() = Unlocked;
-  const factory LockState.locked({required List<BiometricMethod> availableBiometricMethods}) = Locked;
+class Locked extends LockState {
+  final List<BiometricMethod> availableBiometricMethods;
+
+  const Locked({required this.availableBiometricMethods});
+
+  @override
+  List<Object?> get props => [availableBiometricMethods];
+}
+
+class Unlocked extends LockState {
+  const Unlocked() : super();
 }

@@ -1,10 +1,25 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:equatable/equatable.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 
-part 'biometric_availability.freezed.dart';
+abstract class BiometricAvailability extends Equatable {
+  const BiometricAvailability();
+  @override
+  List<Object?> get props => [];
+}
 
-@freezed
-class BiometricAvailability with _$BiometricAvailability {
-  const factory BiometricAvailability.available({required bool isEnabled}) = Available;
-  const factory BiometricAvailability.unavailable({required LocalAuthFailure reason}) = Unavailable;
+class Available extends BiometricAvailability {
+  final bool isEnabled;
+
+  const Available({required this.isEnabled});
+
+  @override
+  List<Object?> get props => [isEnabled];
+}
+
+class Unavailable extends BiometricAvailability {
+  final LocalAuthFailure reason;
+
+  const Unavailable({required this.reason});
+  @override
+  List<Object?> get props => [reason];
 }

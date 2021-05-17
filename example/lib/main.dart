@@ -239,6 +239,6 @@ class SetupAuthWidget extends StatelessWidget {
   }
 
   bool _isCurrentPinIssue(LocalAuthFailure? error) {
-    return error is WrongPin || error is TooManyAttempts;
+    return error == LocalAuthFailure.wrongPin || error == LocalAuthFailure.tooManyAttempts;
   }
 }

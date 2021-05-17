@@ -30,89 +30,94 @@ class AuthenticationSetupWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<SetuplocalauthCubit>(
       create: (context) => SetuplocalauthCubit(authenticator)..checkInitialState(),
-      child: BlocBuilder<SetuplocalauthCubit, SetupStage>(
-        builder: (context, state) => state.map(
-          base: (base) {
-            return overviewBuilder(
-              OverviewConfiguration(
-                onTogglePin: () {
-                  if (base.isPinAuthEnabled == false) {
-                    BlocProvider.of<SetuplocalauthCubit>(context).startEnablingPincode();
-                  } else if (base.isPinAuthEnabled == true) {
-                    BlocProvider.of<SetuplocalauthCubit>(context).startDisablingPincode();
-                  }
-                },
-                onToggleBiometric: () => bloc(context).toggleBiometricAuthentication(),
-                onPasswordChangeRequested: () {
-                  BlocProvider.of<SetuplocalauthCubit>(context).startChangingPincode();
-                },
-                isLoading: base.isLoading,
-                isBiometricAuthAvailable: base.isBiometricAuthAvailable,
-                isBiometricAuthEnabled: base.isBiometricAuthEnabled,
-                isPinEnabled: base.isPinAuthEnabled,
-                error: base.error,
-              ),
-            );
-          },
-          enabling: (s) => enablingWidget(
+      child: BlocBuilder<SetuplocalauthCubit, SetupStage>(builder: (context, state) {
+        if (state is Base) {
+          return overviewBuilder(
+            OverviewConfiguration(
+              onTogglePin: () {
+                if (state.isPinAuthEnabled == false) {
+                  BlocProvider.of<SetuplocalauthCubit>(context).startEnablingPincode();
+                } else if (state.isPinAuthEnabled == true) {
+                  BlocProvider.of<SetuplocalauthCubit>(context).startDisablingPincode();
+                }
+              },
+              onToggleBiometric: () => bloc(context).toggleBiometricAuthentication(),
+              onPasswordChangeRequested: () {
+                BlocProvider.of<SetuplocalauthCubit>(context).startChangingPincode();
+              },
+              isLoading: state.isLoading,
+              isBiometricAuthAvailable: state.isBiometricAuthAvailable,
+              isBiometricAuthEnabled: state.isBiometricAuthEnabled,
+              isPinEnabled: state.isPinAuthEnabled,
+              error: state.error,
+            ),
+          );
+        }
+        if (state is Enabling) {
+          return enablingWidget(
             EnablingPinConfiguration(
               pinInputWidget: PinInputWidget(
-                value: s.pin ?? '',
-                pinLength: s.pinLength,
+                value: state.pin ?? '',
+                pinLength: state.pinLength,
                 onInput: (text) => bloc(context).pinEntered(text),
                 autofocus: true,
                 inputNodeBuilder: pinInputBuilder,
               ),
               pinConfirmationWidget: PinInputWidget(
-                value: s.confirmationPin ?? '',
+                value: state.confirmationPin ?? '',
                 pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).pinConfirmationEntered(text),
                 inputNodeBuilder: pinInputBuilder,
               ),
-              canSubmitChange: s.canGoFurther,
+              canSubmitChange: state.canGoFurther,
               onSubmitChange: () => BlocProvider.of<SetuplocalauthCubit>(context).savePin(),
-              error: s.error,
+              error: state.error,
             ),
-          ),
-          disabling: (s) => disablingWidget(
+          );
+        }
+        if (state is Disabling) {
+          return disablingWidget(
             DisablingPinConfiguration(
               pinInputWidget: PinInputWidget(
-                value: s.pin,
-                pinLength: s.pinLength,
+                value: state.pin,
+                pinLength: state.pinLength,
                 onInput: (text) => bloc(context).enterPinToDisable(text),
                 inputNodeBuilder: pinInputBuilder,
                 autofocus: true,
               ),
-              canSubmitChange: s.canGoFurther,
+              canSubmitChange: state.canGoFurther,
               onChangeSubmitted: () => bloc(context).disablePinAuthentication(),
             ),
-          ),
-          changingPasscode: (s) => changingWidget(
+          );
+        }
+        if (state is ChangingPasscode) {
+          return changingWidget(
             ChangingPinConfiguration(
               oldPinInputWidget: PinInputWidget(
                 inputNodeBuilder: pinInputBuilder,
-                pinLength: s.pinLength,
+                pinLength: state.pinLength,
                 onInput: (text) => bloc(context).enterPinToChange(text),
-                value: s.currentPin,
+                value: state.currentPin,
               ),
               newPinInputWidget: PinInputWidget(
-                value: s.newPin,
-                pinLength: s.pinLength,
+                value: state.newPin,
+                pinLength: state.pinLength,
                 onInput: (text) => bloc(context).enterNewPin(text),
                 inputNodeBuilder: pinInputBuilder,
               ),
               confirmNewPinInputWidget: PinInputWidget(
-                  value: s.confirmationPin,
-                  pinLength: s.pinLength,
+                  value: state.confirmationPin,
+                  pinLength: state.pinLength,
                   onInput: (text) => bloc(context).pinConfirmationEntered(text),
                   inputNodeBuilder: pinInputBuilder),
-              error: s.error,
-              canSubmitChange: s.canGoFurther,
+              error: state.error,
+              canSubmitChange: state.canGoFurther,
               onSubimtChange: () => bloc(context).changePin(),
             ),
-          ),
-        ),
-      ),
+          );
+        }
+        return Container();
+      }),
     );
   }
 

@@ -1,47 +1,144 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:equatable/equatable.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 
-part 'setup_stage.freezed.dart';
+abstract class SetupStage extends Equatable {
+  LocalAuthFailure? get error;
+  bool get canGoFurther;
 
-@freezed
-class SetupStage with _$SetupStage {
-  const SetupStage._();
-  const factory SetupStage.base({
-    @Default(false) bool isLoading,
+  const SetupStage();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class Base extends SetupStage {
+  final bool isLoading;
+  final bool? isPinAuthEnabled;
+  final bool? isBiometricAuthAvailable;
+  final bool? isBiometricAuthEnabled;
+  @override
+  final LocalAuthFailure? error;
+
+  const Base({
+    this.isLoading = false,
+    this.isPinAuthEnabled,
+    this.isBiometricAuthAvailable,
+    this.isBiometricAuthEnabled,
+    this.error,
+  });
+
+  @override
+  bool get canGoFurther => true;
+
+  @override
+  List<Object?> get props => [isLoading, isPinAuthEnabled, isBiometricAuthAvailable, isBiometricAuthEnabled, error];
+
+  Base copyWith({
+    bool? isLoading,
     bool? isPinAuthEnabled,
-    bool? isBiometricAuthAvailable,
     bool? isBiometricAuthEnabled,
+    bool? isBiometricAuthAvailable,
     LocalAuthFailure? error,
-  }) = Base;
+  }) =>
+      Base(
+        isLoading: isLoading ?? this.isLoading,
+        isPinAuthEnabled: isPinAuthEnabled ?? this.isPinAuthEnabled,
+        isBiometricAuthEnabled: isBiometricAuthEnabled ?? this.isBiometricAuthEnabled,
+        isBiometricAuthAvailable: isBiometricAuthAvailable ?? this.isBiometricAuthAvailable,
+        error: error,
+      );
+}
 
-  const factory SetupStage.enabling({
+class Enabling extends SetupStage {
+  final String? pin;
+  final String? confirmationPin;
+  final int pinLength;
+  @override
+  final LocalAuthFailure? error;
+
+  const Enabling({
+    this.pin,
+    this.confirmationPin,
+    required this.pinLength,
+    this.error,
+  });
+
+  @override
+  bool get canGoFurther => pin?.length == pinLength && confirmationPin?.length == pinLength;
+
+  @override
+  List<Object?> get props => [pin, confirmationPin, pinLength, error];
+
+  Enabling copyWith({
     String? pin,
     String? confirmationPin,
-    required int pinLength,
+    int? pinLength,
     LocalAuthFailure? error,
-  }) = Enabling;
+  }) =>
+      Enabling(
+        pinLength: pinLength ?? this.pinLength,
+        pin: pin ?? this.pin,
+        confirmationPin: confirmationPin ?? this.confirmationPin,
+        error: error,
+      );
+}
 
-  const factory SetupStage.disabling({
-    required int pinLength,
-    @Default('') String pin,
+class Disabling extends SetupStage {
+  final int pinLength;
+  final String pin;
+  @override
+  final LocalAuthFailure? error;
+
+  const Disabling({required this.pinLength, this.pin = '', this.error});
+
+  @override
+  bool get canGoFurther => pinLength == pin.length;
+
+  @override
+  List<Object?> get props => [pinLength, pin, error];
+
+  Disabling copyWith({int? pinLength, String? pin, LocalAuthFailure? error}) => Disabling(
+        pin: pin ?? this.pin,
+        pinLength: pinLength ?? this.pinLength,
+        error: error,
+      );
+}
+
+class ChangingPasscode extends SetupStage {
+  final int pinLength;
+  final String currentPin;
+  final String confirmationPin;
+  final String newPin;
+  @override
+  final LocalAuthFailure? error;
+
+  const ChangingPasscode({
+    required this.pinLength,
+    this.currentPin = '',
+    this.confirmationPin = '',
+    this.newPin = '',
+    this.error,
+  });
+
+  @override
+  bool get canGoFurther =>
+      currentPin.length == pinLength && newPin.length == pinLength && confirmationPin.length == pinLength;
+
+  @override
+  List<Object?> get props => [pinLength, currentPin, confirmationPin, newPin, error];
+
+  ChangingPasscode copyWith({
+    int? pinLength,
+    String? currentPin,
+    String? confirmationPin,
+    String? newPin,
     LocalAuthFailure? error,
-  }) = Disabling;
-
-  const factory SetupStage.changingPasscode({
-    required int pinLength,
-    @Default('') String currentPin,
-    @Default('') String newPin,
-    @Default('') String confirmationPin,
-    LocalAuthFailure? error,
-  }) = ChangingPasscode;
-
-  bool get canGoFurther => map(
-        base: (_) => true,
-        enabling: (s) => s.pin?.length == s.pinLength && s.confirmationPin?.length == s.pinLength,
-        disabling: (s) => s.pinLength == s.pin.length,
-        changingPasscode: (s) =>
-            s.currentPin.length == s.pinLength &&
-            s.newPin.length == s.pinLength &&
-            s.confirmationPin.length == s.pinLength,
+  }) =>
+      ChangingPasscode(
+        pinLength: pinLength ?? this.pinLength,
+        currentPin: currentPin ?? this.currentPin,
+        confirmationPin: confirmationPin ?? this.confirmationPin,
+        newPin: newPin ?? this.newPin,
+        error: error,
       );
 }

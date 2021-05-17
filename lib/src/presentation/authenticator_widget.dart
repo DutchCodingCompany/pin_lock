@@ -39,27 +39,25 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   void initState() {
     super.initState();
     lockSubscription = widget.authenticator.lockState.listen((event) {
-      event.when(
-        unlocked: () {
-          overlayEntry?.remove();
-          overlayEntry = null;
-        },
-        locked: (avilableBiometricMethods) {
-          if (overlayEntry == null) {
-            overlayEntry = OverlayEntry(
-              opaque: true,
-              builder: (context) => _LockScreen(
-                authenticator: widget.authenticator,
-                builder: widget.lockScreenBuilder,
-                inputNodeBuilder: widget.inputNodeBuilder,
-                availableMethods: avilableBiometricMethods,
-                userFacingMessage: widget.userFacingBiometricAuthenticationMessage,
-              ),
-            );
-            Overlay.of(context)?.insert(overlayEntry!);
-          }
-        },
-      );
+      if (event is Unlocked) {
+        overlayEntry?.remove();
+        overlayEntry = null;
+      }
+      if (event is Locked) {
+        if (overlayEntry == null) {
+          overlayEntry = OverlayEntry(
+            opaque: true,
+            builder: (context) => _LockScreen(
+              authenticator: widget.authenticator,
+              builder: widget.lockScreenBuilder,
+              inputNodeBuilder: widget.inputNodeBuilder,
+              availableMethods: event.availableBiometricMethods,
+              userFacingMessage: widget.userFacingBiometricAuthenticationMessage,
+            ),
+          );
+          Overlay.of(context)?.insert(overlayEntry!);
+        }
+      }
     });
   }
 

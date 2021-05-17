@@ -18,12 +18,15 @@ export 'package:pin_lock/src/presentation/widget_configurations.dart';
 export 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 export 'package:pin_lock/src/repositories/pin_repository.dart';
 export 'package:pin_lock/src/entities/failure.dart';
+export 'package:pin_lock/src/entities/lock_state.dart';
 
 class PinLock {
   static const MethodChannel _channel = MethodChannel('pin_lock');
 
-  static Future<Authenticator> baseAuthenticator(String userId) async => AuthenticatorImpl(
-        LocalAuthenticationRepositoryImpl(await SharedPreferences.getInstance()),
+  static Future<Authenticator> baseAuthenticator(String userId) async =>
+      AuthenticatorImpl(
+        LocalAuthenticationRepositoryImpl(
+            await SharedPreferences.getInstance()),
         LocalAuthentication(),
         LockController(),
         userId: UserId(userId),
