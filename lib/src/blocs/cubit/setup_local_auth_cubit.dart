@@ -52,7 +52,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   }
 
   Future<void> startEnablingPincode() async {
-    emit(Enabling(pinLength: authenticator.pinLength));
+    emit(const Enabling());
   }
 
   void pinEntered(String pin) {
@@ -87,7 +87,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   }
 
   void startDisablingPincode() {
-    emit(Disabling(pinLength: authenticator.pinLength));
+    emit(const Disabling());
   }
 
   void enterPinToDisable(String pin) {
@@ -109,7 +109,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   }
 
   void startChangingPincode() {
-    emit(ChangingPasscode(pinLength: authenticator.pinLength));
+    emit(const ChangingPasscode());
   }
 
   void enterPinToChange(String pin) {

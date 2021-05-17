@@ -3,7 +3,7 @@ import 'package:pin_lock/src/entities/failure.dart';
 
 abstract class SetupStage extends Equatable {
   LocalAuthFailure? get error;
-  bool get canGoFurther;
+  bool canGoFurther(int pinLength);
 
   const SetupStage();
 
@@ -28,7 +28,7 @@ class Base extends SetupStage {
   });
 
   @override
-  bool get canGoFurther => true;
+  bool canGoFurther(int pinLength) => true;
 
   @override
   List<Object?> get props => [isLoading, isPinAuthEnabled, isBiometricAuthAvailable, isBiometricAuthEnabled, error];
@@ -52,22 +52,20 @@ class Base extends SetupStage {
 class Enabling extends SetupStage {
   final String? pin;
   final String? confirmationPin;
-  final int pinLength;
   @override
   final LocalAuthFailure? error;
 
   const Enabling({
     this.pin,
     this.confirmationPin,
-    required this.pinLength,
     this.error,
   });
 
   @override
-  bool get canGoFurther => pin?.length == pinLength && confirmationPin?.length == pinLength;
+  bool canGoFurther(int pinLength) => pin?.length == pinLength && confirmationPin?.length == pinLength;
 
   @override
-  List<Object?> get props => [pin, confirmationPin, pinLength, error];
+  List<Object?> get props => [pin, confirmationPin, error];
 
   Enabling copyWith({
     String? pin,
@@ -76,7 +74,6 @@ class Enabling extends SetupStage {
     LocalAuthFailure? error,
   }) =>
       Enabling(
-        pinLength: pinLength ?? this.pinLength,
         pin: pin ?? this.pin,
         confirmationPin: confirmationPin ?? this.confirmationPin,
         error: error,
@@ -84,28 +81,25 @@ class Enabling extends SetupStage {
 }
 
 class Disabling extends SetupStage {
-  final int pinLength;
   final String pin;
   @override
   final LocalAuthFailure? error;
 
-  const Disabling({required this.pinLength, this.pin = '', this.error});
+  const Disabling({this.pin = '', this.error});
 
   @override
-  bool get canGoFurther => pinLength == pin.length;
+  bool canGoFurther(int pinLength) => pinLength == pin.length;
 
   @override
-  List<Object?> get props => [pinLength, pin, error];
+  List<Object?> get props => [pin, error];
 
   Disabling copyWith({int? pinLength, String? pin, LocalAuthFailure? error}) => Disabling(
         pin: pin ?? this.pin,
-        pinLength: pinLength ?? this.pinLength,
         error: error,
       );
 }
 
 class ChangingPasscode extends SetupStage {
-  final int pinLength;
   final String currentPin;
   final String confirmationPin;
   final String newPin;
@@ -113,7 +107,6 @@ class ChangingPasscode extends SetupStage {
   final LocalAuthFailure? error;
 
   const ChangingPasscode({
-    required this.pinLength,
     this.currentPin = '',
     this.confirmationPin = '',
     this.newPin = '',
@@ -121,11 +114,11 @@ class ChangingPasscode extends SetupStage {
   });
 
   @override
-  bool get canGoFurther =>
+  bool canGoFurther(int pinLength) =>
       currentPin.length == pinLength && newPin.length == pinLength && confirmationPin.length == pinLength;
 
   @override
-  List<Object?> get props => [pinLength, currentPin, confirmationPin, newPin, error];
+  List<Object?> get props => [currentPin, confirmationPin, newPin, error];
 
   ChangingPasscode copyWith({
     int? pinLength,
@@ -135,7 +128,6 @@ class ChangingPasscode extends SetupStage {
     LocalAuthFailure? error,
   }) =>
       ChangingPasscode(
-        pinLength: pinLength ?? this.pinLength,
         currentPin: currentPin ?? this.currentPin,
         confirmationPin: confirmationPin ?? this.confirmationPin,
         newPin: newPin ?? this.newPin,

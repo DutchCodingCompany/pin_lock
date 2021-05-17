@@ -58,7 +58,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
             EnablingPinConfiguration(
               pinInputWidget: PinInputWidget(
                 value: state.pin ?? '',
-                pinLength: state.pinLength,
+                pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).pinEntered(text),
                 autofocus: true,
                 inputNodeBuilder: pinInputBuilder,
@@ -69,7 +69,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 onInput: (text) => bloc(context).pinConfirmationEntered(text),
                 inputNodeBuilder: pinInputBuilder,
               ),
-              canSubmitChange: state.canGoFurther,
+              canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onSubmitChange: () => BlocProvider.of<SetuplocalauthCubit>(context).savePin(),
               error: state.error,
             ),
@@ -80,12 +80,12 @@ class AuthenticationSetupWidget extends StatelessWidget {
             DisablingPinConfiguration(
               pinInputWidget: PinInputWidget(
                 value: state.pin,
-                pinLength: state.pinLength,
+                pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).enterPinToDisable(text),
                 inputNodeBuilder: pinInputBuilder,
                 autofocus: true,
               ),
-              canSubmitChange: state.canGoFurther,
+              canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onChangeSubmitted: () => bloc(context).disablePinAuthentication(),
             ),
           );
@@ -95,23 +95,23 @@ class AuthenticationSetupWidget extends StatelessWidget {
             ChangingPinConfiguration(
               oldPinInputWidget: PinInputWidget(
                 inputNodeBuilder: pinInputBuilder,
-                pinLength: state.pinLength,
+                pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).enterPinToChange(text),
                 value: state.currentPin,
               ),
               newPinInputWidget: PinInputWidget(
                 value: state.newPin,
-                pinLength: state.pinLength,
+                pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).enterNewPin(text),
                 inputNodeBuilder: pinInputBuilder,
               ),
               confirmNewPinInputWidget: PinInputWidget(
                   value: state.confirmationPin,
-                  pinLength: state.pinLength,
+                  pinLength: authenticator.pinLength,
                   onInput: (text) => bloc(context).pinConfirmationEntered(text),
                   inputNodeBuilder: pinInputBuilder),
               error: state.error,
-              canSubmitChange: state.canGoFurther,
+              canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onSubimtChange: () => bloc(context).changePin(),
             ),
           );
