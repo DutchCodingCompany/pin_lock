@@ -36,20 +36,19 @@ class AuthenticationSetupWidget extends StatelessWidget {
             OverviewConfiguration(
               onTogglePin: () {
                 if (state.isPinAuthEnabled == false) {
-                  BlocProvider.of<SetuplocalauthCubit>(context).startEnablingPincode();
+                  bloc(context).startEnablingPincode();
                 } else if (state.isPinAuthEnabled == true) {
-                  BlocProvider.of<SetuplocalauthCubit>(context).startDisablingPincode();
+                  bloc(context).startDisablingPincode();
                 }
               },
               onToggleBiometric: () => bloc(context).toggleBiometricAuthentication(),
-              onPasswordChangeRequested: () {
-                BlocProvider.of<SetuplocalauthCubit>(context).startChangingPincode();
-              },
+              onPasswordChangeRequested: () => bloc(context).startChangingPincode(),
               isLoading: state.isLoading,
               isBiometricAuthAvailable: state.isBiometricAuthAvailable,
               isBiometricAuthEnabled: state.isBiometricAuthEnabled,
               isPinEnabled: state.isPinAuthEnabled,
               error: state.error,
+              onRefresh: () => bloc(context).checkInitialState(),
             ),
           );
         }
@@ -70,8 +69,9 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 inputNodeBuilder: pinInputBuilder,
               ),
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
-              onSubmitChange: () => BlocProvider.of<SetuplocalauthCubit>(context).savePin(),
+              onSubmitChange: () => bloc(context).savePin(),
               error: state.error,
+              onCancel: () => bloc(context).checkInitialState(),
             ),
           );
         }
@@ -87,6 +87,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
               ),
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onChangeSubmitted: () => bloc(context).disablePinAuthentication(),
+              onCancel: () => bloc(context).checkInitialState(),
             ),
           );
         }
@@ -113,6 +114,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
               error: state.error,
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onSubimtChange: () => bloc(context).changePin(),
+              onCancel: () => bloc(context).checkInitialState(),
             ),
           );
         }

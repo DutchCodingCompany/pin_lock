@@ -13,6 +13,7 @@ class OverviewConfiguration extends Equatable {
   final VoidCallback onPasswordChangeRequested;
   final VoidCallback onToggleBiometric;
   final LocalAuthFailure? error;
+  final VoidCallback onRefresh;
 
   const OverviewConfiguration({
     required this.isPinEnabled,
@@ -23,6 +24,7 @@ class OverviewConfiguration extends Equatable {
     required this.isLoading,
     required this.onToggleBiometric,
     required this.error,
+    required this.onRefresh,
   });
 
   @override
@@ -34,6 +36,7 @@ class OverviewConfiguration extends Equatable {
         onPasswordChangeRequested,
         onToggleBiometric,
         error,
+        onRefresh,
       ];
 }
 
@@ -43,6 +46,7 @@ class EnablingPinConfiguration extends Equatable {
   final Widget pinConfirmationWidget;
   final bool canSubmitChange;
   final VoidCallback onSubmitChange;
+  final VoidCallback onCancel;
 
   const EnablingPinConfiguration({
     this.error,
@@ -50,6 +54,7 @@ class EnablingPinConfiguration extends Equatable {
     required this.pinConfirmationWidget,
     required this.canSubmitChange,
     required this.onSubmitChange,
+    required this.onCancel,
   });
 
   @override
@@ -59,6 +64,7 @@ class EnablingPinConfiguration extends Equatable {
         pinConfirmationWidget,
         canSubmitChange,
         onSubmitChange,
+        onCancel,
       ];
 }
 
@@ -67,15 +73,22 @@ class DisablingPinConfiguration extends Equatable {
   final Widget pinInputWidget;
   final bool canSubmitChange;
   final VoidCallback onChangeSubmitted;
+  final VoidCallback onCancel;
 
-  const DisablingPinConfiguration({
-    this.error,
-    required this.pinInputWidget,
-    required this.canSubmitChange,
-    required this.onChangeSubmitted,
-  });
+  const DisablingPinConfiguration(
+      {this.error,
+      required this.pinInputWidget,
+      required this.canSubmitChange,
+      required this.onChangeSubmitted,
+      required this.onCancel});
   @override
-  List<Object?> get props => [error, pinInputWidget, canSubmitChange, onChangeSubmitted];
+  List<Object?> get props => [
+        error,
+        pinInputWidget,
+        canSubmitChange,
+        onChangeSubmitted,
+        onCancel,
+      ];
 }
 
 class ChangingPinConfiguration extends Equatable {
@@ -85,6 +98,7 @@ class ChangingPinConfiguration extends Equatable {
   final LocalAuthFailure? error;
   final bool canSubmitChange;
   final VoidCallback onSubimtChange;
+  final VoidCallback onCancel;
 
   const ChangingPinConfiguration({
     required this.oldPinInputWidget,
@@ -93,6 +107,7 @@ class ChangingPinConfiguration extends Equatable {
     required this.error,
     required this.canSubmitChange,
     required this.onSubimtChange,
+    required this.onCancel,
   });
 
   @override
@@ -103,6 +118,7 @@ class ChangingPinConfiguration extends Equatable {
         error,
         canSubmitChange,
         onSubimtChange,
+        onCancel,
       ];
 }
 
