@@ -88,6 +88,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onChangeSubmitted: () => bloc(context).disablePinAuthentication(),
               onCancel: () => bloc(context).checkInitialState(),
+              error: state.error,
             ),
           );
         }
