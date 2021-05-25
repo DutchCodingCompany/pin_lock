@@ -38,8 +38,8 @@ abstract class Authenticator with WidgetsBindingObserver {
   });
 
   /// Disables locking the app completely, including biometric authentication
-  /// Only happens if provided [pin] is correct
-  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({required Pin pin});
+  /// Only happens if provided [pin] is correct, or if [force] is true (which should be avoided)
+  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({required Pin pin, bool force = false});
 
   /// Enables biometric authentication for user.
   /// [Authenticator] will always first attempt to [unlockWithBiometrics]
@@ -66,7 +66,7 @@ abstract class Authenticator with WidgetsBindingObserver {
 
   /// Triggers the OS's biometric authentication and returns [true] if authentication is successful
   /// [LocalAuthFailure] if it fails
-  Future<Either<LocalAuthFailure, bool>> unlockWithBiometrics({required String userFacingExplanation});
+  Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics({required String userFacingExplanation});
 
   /// -- Helpers --
 
@@ -169,17 +169,20 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }
 
   @override
-  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({required Pin pin}) async {
-    final isAuthenticationEnabled = await isPinAuthenticationEnabled();
-    if (!isAuthenticationEnabled) {
-      return const Right(unit);
-    }
-    final correctPin = await _repository.getPin(forUser: userId);
-    if (correctPin?.value != pin.value) {
-      return const Left(LocalAuthFailure.wrongPin);
+  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({required Pin pin, bool force = false}) async {
+    if (!force) {
+      final isAuthenticationEnabled = await isPinAuthenticationEnabled();
+      if (!isAuthenticationEnabled) {
+        return const Right(unit);
+      }
+      final correctPin = await _repository.getPin(forUser: userId);
+      if (correctPin?.value != pin.value) {
+        return const Left(LocalAuthFailure.wrongPin);
+      }
     }
     try {
       await _repository.disableLocalAuthentication(userId: userId);
+      _lockController.unlock();
       return const Right(unit);
     } catch (e) {
       return const Left(LocalAuthFailure.unknown);
@@ -280,7 +283,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }
 
   @override
-  Future<Either<LocalAuthFailure, bool>> unlockWithBiometrics({required String userFacingExplanation}) async {
+  Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics({required String userFacingExplanation}) async {
     final biometricAvailability = await getBiometricAuthenticationAvailability();
     if (biometricAvailability is Available) {
       if (!biometricAvailability.isEnabled) {
@@ -290,9 +293,13 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
       try {
         final isSuccessful = await _biometricAuth.authenticate(
           localizedReason: userFacingExplanation,
+          biometricOnly: true,
         );
-        _lockController.unlock();
-        return Right(isSuccessful);
+        if (isSuccessful) {
+          _lockController.unlock();
+          return const Right(unit);
+        }
+        return const Left(LocalAuthFailure.biometricAuthenticationFailed);
       } on PlatformException catch (e) {
         return Left(e.toLocalAuthFailure());
       } catch (e) {
