@@ -16,6 +16,7 @@ class AuthenticatorWidget extends StatefulWidget {
   final SplashScreenBuilder? splashScreenBuilder;
   final PinInputBuilder inputNodeBuilder;
   final String userFacingBiometricAuthenticationMessage;
+  final Duration splashScreenDuration;
 
   const AuthenticatorWidget({
     Key? key,
@@ -25,6 +26,7 @@ class AuthenticatorWidget extends StatefulWidget {
     required this.userFacingBiometricAuthenticationMessage,
     required this.inputNodeBuilder,
     this.splashScreenBuilder,
+    this.splashScreenDuration = const Duration(seconds: 0),
   }) : super(key: key);
 
   @override
@@ -34,6 +36,7 @@ class AuthenticatorWidget extends StatefulWidget {
 class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   late final StreamSubscription lockSubscription;
   OverlayEntry? overlayEntry;
+  bool _isShowingSplashScreen = true;
 
   @override
   void initState() {
@@ -55,9 +58,19 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
               userFacingMessage: widget.userFacingBiometricAuthenticationMessage,
             ),
           );
-          Overlay.of(context)?.insert(overlayEntry!);
+          if (!_isShowingSplashScreen) {
+            Overlay.of(context)?.insert(overlayEntry!);
+          }
         }
       }
+    });
+    Future.delayed(widget.splashScreenDuration).then((_) {
+      setState(() {
+        _isShowingSplashScreen = false;
+        if (overlayEntry != null) {
+          Overlay.of(context)?.insert(overlayEntry!);
+        }
+      });
     });
   }
 
@@ -72,7 +85,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
     return StreamBuilder<LockState>(
       stream: widget.authenticator.lockState,
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
+        if (snapshot.hasData && !_isShowingSplashScreen) {
           return widget.child;
         }
         return widget.splashScreenBuilder?.call() ?? const Center(child: CircularProgressIndicator());
