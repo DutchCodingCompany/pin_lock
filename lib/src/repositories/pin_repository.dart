@@ -1,6 +1,8 @@
 import 'package:pin_lock/src/entities/value_objects.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+/// Used to store values between sessions. [pin_lock] comes with [SharedPreferences](https://pub.dev/packages/shared_preferences)
+/// implementation out of the box, but it is possible to provide your own implementation (e.g., using encrypted storage library
+/// instead) by implementing [LocalAuthenticationRepository] interface and passing it to [Authenticator.instance()]
 abstract class LocalAuthenticationRepository {
   /// Used to determine if the lock screen should be shown
   Future<bool?> isPinAuthenticationEnabled({required UserId userId});
@@ -10,151 +12,41 @@ abstract class LocalAuthenticationRepository {
 
   /// Writes to the repository the user's preference to have local authentication enabled
   /// with the given [pin], for the user with [userId]
-  Future<void> enableLocalAuthentication({required Pin pin, required UserId userId});
+  Future<void> enablePinAuthentication({required Pin pin, required UserId userId});
 
   Future<void> enableBiometricAuthentication({required UserId userId});
 
   /// Writes to the repository the preference of the user with [userId] to not show lock screen
-  /// Makes [isAuthenticationEnabled()] return false
+  /// This includes both pin and biometric authentication
   Future<void> disableLocalAuthentication({required UserId userId});
 
-  /// Disables only biometric authentication
+  /// Disables only biometric authentication, while keeping the pin.
   /// To also disable pin authentication, use [disableLocalAuthentication]
   Future<void> disableBiometricAuthentication({required UserId userId});
 
-  /// Returns the [Pin] of the user with [forUser] id, or [null] if no [Pin] is set
+  /// Returns the [PinHash] of the user with [forUser] id, or [null] if no pin is set
   Future<PinHash?> getPin({required UserId forUser});
 
   /// Set the [newPin] for user with [forUser] id
   Future<void> setPin(Pin newPin, {required UserId forUser});
 
-  /// Gets a list of [DateTime] timestamps of all the previous failed attempts
+  /// Gets a list of [DateTime] timestamps of all the previous failed authentication attempts
+  /// (i.e., times when a wrong pincode was entered)
   Future<List<DateTime>> getListOfFailedAttempts({required UserId userId});
 
-  /// Adds [timestamp] to the list of failed attempts of user with [forUser] id
+  /// Adds [timestamp] to the list of failed authentication attempts of user with [forUser] id
   Future<void> addFailedAttempt(DateTime timestamp, {required UserId forUser});
 
-  /// Clears the list of failed attempts [ofUser]
-  Future<void> resetFailedAttemptCount({required UserId ofUser});
+  /// Clears the list of failed authentication attempts [ofUser]
+  Future<void> resetFailedAttempts({required UserId ofUser});
 
-  /// Save the timestamp when the app became paused
+  /// Saves the timestamp when the app became paused (i.e., lost focus), so that the
+  /// app could be locked if the user has been away from it for longer than [Authenticator.lockAfterDuration]
   Future<void> savePausedTimestamp(DateTime time);
 
-  /// Get timestamp of when the app became paused
+  /// Get timestamp of when the app became paused to determine if sufficient time has passed for it to be locked
   Future<DateTime?> getPausedTimestamp();
 
   /// Clear the last paused timestamp, e.g., when the app has been successfully unlocked
   Future<void> clearLastPausedTimestamp();
-}
-
-class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository {
-  final SharedPreferences sp;
-
-  LocalAuthenticationRepositoryImpl(this.sp);
-
-  SPKey _keyBoolPinEnabled(UserId userId) => SPKey('pin_enabled$userId');
-  SPKey _keyBoolBiometricsEnabled(UserId userId) => SPKey('biometric_enabled$userId');
-  SPKey _keyStringPin(UserId userId) => SPKey('pin$userId');
-  SPKey _keyListFailedAttempts(UserId userId) => SPKey('failed_attempts$userId');
-
-  static const String _keyPausedTimestamp = 'key_paused';
-
-  @override
-  Future<bool?> isPinAuthenticationEnabled({required UserId userId}) async {
-    try {
-      return sp.getBool(_keyBoolPinEnabled(userId).value);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
-  Future<bool?> isBiometricAuthenticationEnabled({required UserId userId}) async {
-    try {
-      return sp.getBool(_keyBoolBiometricsEnabled(userId).value);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
-  Future<void> enableLocalAuthentication({required Pin pin, required UserId userId}) async {
-    sp.setBool(_keyBoolPinEnabled(userId).value, true);
-    sp.setString(_keyStringPin(userId).value, pin.value);
-  }
-
-  @override
-  Future<void> enableBiometricAuthentication({required UserId userId}) async {
-    sp.setBool(_keyBoolBiometricsEnabled(userId).value, true);
-  }
-
-  @override
-  Future<void> disableLocalAuthentication({required UserId userId}) async {
-    sp.setBool(_keyBoolPinEnabled(userId).value, false);
-    sp.remove(_keyStringPin(userId).value);
-  }
-
-  @override
-  Future<void> disableBiometricAuthentication({required UserId userId}) async {
-    sp.setBool(_keyBoolBiometricsEnabled(userId).value, false);
-  }
-
-  @override
-  Future<PinHash?> getPin({required UserId forUser}) async {
-    final pinHash = sp.getString(_keyStringPin(forUser).value);
-    if (pinHash != null) {
-      return PinHash(pinHash);
-    }
-    return null;
-  }
-
-  @override
-  Future<void> setPin(Pin newPin, {required UserId forUser}) async {
-    await enableLocalAuthentication(pin: newPin, userId: forUser);
-  }
-
-  @override
-  Future<List<DateTime>> getListOfFailedAttempts({required UserId userId}) async {
-    final list = sp.getStringList(_keyListFailedAttempts(userId).value);
-    if (list == null) {
-      return <DateTime>[];
-    }
-    return list.map((e) => DateTime.parse(e)).toList();
-  }
-
-  @override
-  Future<void> addFailedAttempt(DateTime timestamp, {required UserId forUser}) async {
-    final key = _keyListFailedAttempts(forUser).value;
-    final list = sp.getStringList(key);
-    if (list == null) {
-      sp.setStringList(key, [timestamp.toString()]);
-    } else {
-      sp.setStringList(key, [...list, timestamp.toString()]);
-    }
-  }
-
-  @override
-  Future<void> resetFailedAttemptCount({required UserId ofUser}) async {
-    sp.remove(_keyListFailedAttempts(ofUser).value);
-  }
-
-  @override
-  Future<void> savePausedTimestamp(DateTime time) async {
-    await sp.setString(_keyPausedTimestamp, time.toString());
-  }
-
-  @override
-  Future<void> clearLastPausedTimestamp() async {
-    await sp.remove(_keyPausedTimestamp);
-  }
-
-  @override
-  Future<DateTime?> getPausedTimestamp() async {
-    final dateString = sp.getString(_keyPausedTimestamp);
-    if (dateString != null) {
-      final date = DateTime.tryParse(dateString);
-      return date;
-    }
-    return null;
-  }
 }

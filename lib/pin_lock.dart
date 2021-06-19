@@ -3,32 +3,55 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
+import 'package:pin_lock/src/entities/authenticator_impl.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
+import 'package:pin_lock/src/repositories/pin_repository_impl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 export 'package:pin_lock/src/entities/authenticator.dart';
-export 'package:pin_lock/src/entities/lock_controller.dart';
-export 'package:pin_lock/src/entities/value_objects.dart';
-export 'package:pin_lock/src/presentation/authentication_setup_widget.dart';
-export 'package:pin_lock/src/presentation/authenticator_widget.dart';
-export 'package:pin_lock/src/presentation/builders.dart';
-export 'package:pin_lock/src/presentation/widget_configurations.dart';
-export 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
-export 'package:pin_lock/src/repositories/pin_repository.dart';
+export 'package:pin_lock/src/entities/biometric_method.dart';
 export 'package:pin_lock/src/entities/failure.dart';
+export 'package:pin_lock/src/entities/lock_controller.dart';
 export 'package:pin_lock/src/entities/lock_state.dart';
+export 'package:pin_lock/src/entities/value_objects.dart';
+export 'package:pin_lock/src/presentation/setup/authentication_setup_widget.dart';
+export 'package:pin_lock/src/presentation/authenticator_widget.dart';
+export 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
+export 'package:pin_lock/src/presentation/lock_screen/builders.dart';
+export 'package:pin_lock/src/repositories/pin_repository.dart';
+export 'package:pin_lock/src/repositories/pin_repository_impl.dart';
+export 'package:pin_lock/src/presentation/pin_input.dart';
 
 class PinLock {
   static const MethodChannel _channel = MethodChannel('pin_lock');
 
-  static Future<Authenticator> baseAuthenticator(String userId) async =>
-      AuthenticatorImpl(
-        LocalAuthenticationRepositoryImpl(
-            await SharedPreferences.getInstance()),
-        LocalAuthentication(),
-        LockController(),
+  static Future<Authenticator> baseAuthenticator(String userId) async => PinLock.authenticatorInstance(
+        repository: LocalAuthenticationRepositoryImpl(await SharedPreferences.getInstance()),
+        biometricAuthenticator: LocalAuthentication(),
+        lockController: LockController(),
         userId: UserId(userId),
+      );
+
+  static Authenticator authenticatorInstance({
+    required LocalAuthenticationRepository repository,
+    required LocalAuthentication biometricAuthenticator,
+    required LockController lockController,
+    required UserId userId,
+    Duration? lockedOutDuration,
+    Duration? lockAfterDuration,
+    int? maxRetries,
+    int? pinLength,
+  }) =>
+      AuthenticatorImpl(
+        repository,
+        biometricAuthenticator,
+        lockController,
+        maxRetries ?? 5,
+        lockedOutDuration ?? const Duration(seconds: 5),
+        lockAfterDuration ?? const Duration(minutes: 5),
+        pinLength ?? 4,
+        userId,
       );
 }

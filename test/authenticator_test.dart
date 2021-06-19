@@ -4,6 +4,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
+import 'package:pin_lock/src/entities/authenticator_impl.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
@@ -27,7 +28,16 @@ void main() {
     when(lockController.unlock()).thenReturn(null);
     when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((realInvocation) async => true);
     when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((realInvocation) async => true);
-    authenticator = AuthenticatorImpl(repository, localAuth, lockController, userId: UserId('1'));
+    authenticator = AuthenticatorImpl(
+      repository,
+      localAuth,
+      lockController,
+      5,
+      const Duration(seconds: 5),
+      const Duration(seconds: 5),
+      4,
+      UserId('1'),
+    );
   });
 
   group('isPinAuthenticationEnabled()', () {
@@ -96,12 +106,12 @@ void main() {
     });
     test('fails with [LocalAuthFailure.unknown] if the repository throws an error', () async {
       when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) => Future.value(null));
-      when(repository.enableLocalAuthentication(pin: Pin('1'), userId: UserId('1'))).thenThrow(Exception());
+      when(repository.enablePinAuthentication(pin: Pin('1'), userId: UserId('1'))).thenThrow(Exception());
       final result = await authenticator.enablePinAuthentication(
         pin: Pin('1'),
         confirmationPin: Pin('1'),
       );
-      verify(repository.enableLocalAuthentication(pin: Pin('1'), userId: UserId('1')));
+      verify(repository.enablePinAuthentication(pin: Pin('1'), userId: UserId('1')));
       expect(result, const Left(LocalAuthFailure.unknown));
     });
 
@@ -113,7 +123,7 @@ void main() {
         pin: Pin('1'),
         confirmationPin: Pin('1'),
       );
-      verify(repository.enableLocalAuthentication(pin: Pin('1'), userId: UserId('1')));
+      verify(repository.enablePinAuthentication(pin: Pin('1'), userId: UserId('1')));
       expect(result, const Right(unit));
     });
   });
@@ -401,7 +411,7 @@ void main() {
       when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
 
       final result = await authenticator.unlockWithPin(pin: Pin('1'));
-      verify(repository.resetFailedAttemptCount(ofUser: UserId('1')));
+      verify(repository.resetFailedAttempts(ofUser: UserId('1')));
       expect(result, const Right(unit));
     });
   });

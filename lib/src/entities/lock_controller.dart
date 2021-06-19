@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:pin_lock/src/entities/biometric_method.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
-import 'package:pin_lock/src/entities/value_objects.dart';
 
 class LockController {
   late final Stream<LockState> state;

@@ -5,18 +5,44 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/pin_lock.dart';
 import 'package:pin_lock/src/blocs/cubit/lock_cubit.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
+import 'package:pin_lock/src/entities/biometric_method.dart';
 import 'package:pin_lock/src/entities/lock_state.dart';
-import 'package:pin_lock/src/presentation/builders.dart';
+import 'package:pin_lock/src/presentation/lock_screen/builders.dart';
+import 'package:pin_lock/src/presentation/lock_screen/configurations.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
+/// Root widget of the part of the app that needs to be protected by the pin.
+/// Takes the app's [Authenticator] as a parameter and makes sure that a lock
+/// screen is shown as a non-dismissable overlay when the app should be locked.
 class AuthenticatorWidget extends StatefulWidget {
+  /// The app's [Authenticator]. Make sure there's only one per app, otherwise
+  /// the locking functionality might not work reliably
   final Authenticator authenticator;
+
+  /// The part of the application that should be locked behind the pin screen
   final Widget child;
+
+  /// Describes what the lock screen should look like, given the [LockScreenConfiguration].
   final LockScreenBuilder lockScreenBuilder;
+
+  /// Optional description of the splash screen. This should be used if you deliberately want
+  /// to delay the appearance of the lock screen so that your users could see the splash screen.
+  /// It only adds a Dart-side "splash", the native splash screens need to be implemented
+  /// manually in your app.
   final SplashScreenBuilder? splashScreenBuilder;
-  final PinInputBuilder inputNodeBuilder;
-  final String userFacingBiometricAuthenticationMessage;
+
+  /// Optional duration for which to delay the appearance of the lock screen.
+  /// You shouldn't be adding unecessary delays to your application, but sometimes
+  /// the designs require it :/
   final Duration splashScreenDuration;
+
+  /// The message that the user sees in a native dialog while attempting to unlock
+  /// the app using biometric authentication
+  final String userFacingBiometricAuthenticationMessage;
+
+  /// Describes what an individual pin input field is going to look like, given its
+  //// position ([index]) and its [InputFieldState]
+  final PinInputBuilder inputNodeBuilder;
 
   const AuthenticatorWidget({
     Key? key,
@@ -26,7 +52,7 @@ class AuthenticatorWidget extends StatefulWidget {
     required this.userFacingBiometricAuthenticationMessage,
     required this.inputNodeBuilder,
     this.splashScreenBuilder,
-    this.splashScreenDuration = const Duration(seconds: 0),
+    this.splashScreenDuration = const Duration(),
   }) : super(key: key);
 
   @override
@@ -139,3 +165,5 @@ class _LockScreen extends StatelessWidget {
     );
   }
 }
+
+typedef SplashScreenBuilder = Widget Function();

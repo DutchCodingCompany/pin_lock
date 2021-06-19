@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:pin_lock/pin_lock.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
-import 'package:pin_lock/src/repositories/pin_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'pin_repository_test.mocks.dart';
@@ -86,7 +86,7 @@ void main() {
       final pin = Pin('1234');
       when(sharedPreferences.setBool(boolKey, true)).thenAnswer((_) async => true);
       when(sharedPreferences.setString(pinKey.value, pin.value)).thenAnswer((_) async => true);
-      repository.enableLocalAuthentication(pin: pin, userId: user);
+      repository.enablePinAuthentication(pin: pin, userId: user);
       verify(sharedPreferences.setBool(boolKey, true));
       verify(sharedPreferences.setString(pinKey.value, pin.value));
     });

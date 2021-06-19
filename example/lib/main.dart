@@ -9,10 +9,10 @@ late Authenticator globalAuthenticator;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPref = await SharedPreferences.getInstance();
-  globalAuthenticator = AuthenticatorImpl(
-    LocalAuthenticationRepositoryImpl(sharedPref),
-    LocalAuthentication(),
-    LockController(),
+  globalAuthenticator = PinLock.authenticatorInstance(
+    repository: LocalAuthenticationRepositoryImpl(sharedPref),
+    biometricAuthenticator: LocalAuthentication(),
+    lockController: LockController(),
     userId: UserId('1'),
   );
   runApp(MyApp(sp: sharedPref));

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pin_lock/src/presentation/builders.dart';
+import 'package:pin_lock/src/presentation/pin_input.dart';
 
 class PinInputWidget extends StatefulWidget {
   final String value;

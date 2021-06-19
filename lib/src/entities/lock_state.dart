@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:pin_lock/pin_lock.dart';
+import 'package:pin_lock/src/entities/biometric_method.dart';
 
 abstract class LockState extends Equatable {
   const LockState();

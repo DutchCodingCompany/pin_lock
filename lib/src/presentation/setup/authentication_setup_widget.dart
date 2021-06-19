@@ -4,16 +4,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_local_auth_cubit.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_stage.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
-import 'package:pin_lock/src/presentation/builders.dart';
-import 'package:pin_lock/src/presentation/widget_configurations.dart';
+import 'package:pin_lock/src/presentation/pin_input.dart';
+import 'package:pin_lock/src/presentation/setup/builders.dart';
+import 'package:pin_lock/src/presentation/setup/configurations.dart';
 import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
+/// A widget that controls the setup of local authentication.
+/// The builders passed as parameters to this widget describe what the UI
+/// should look like at each step of the setup.
+/// [AuthenticationSetupWidget] takes care of invoking appropriate builders
+/// so that the app only takes care of what the setup should look like,
+/// while the package takes care of the logic behind it.
 class AuthenticationSetupWidget extends StatelessWidget {
+  /// App's instace of [Authenticator]
   final Authenticator authenticator;
+
+  /// Builder that describes what the passive, overview state should look like, with
+  /// regards to the given [OverviewConfiguration]
   final OverviewBuilder overviewBuilder;
+
+  /// Builder that describes UI configuration with regards to provided [EnablingPinConfiguration]
   final EnablingPinWidgetBuilder enablingWidget;
+
+  /// Builder that describes UI configuration with regards to provided [DisablingPinConfiguration]
   final DisablingPinWidgetBuilder disablingWidget;
+
+  /// Builder that describes UI configuration with regards to provided [ChangingPinConfiguration]
   final ChangingPinWidgetBuilder changingWidget;
+
+  /// Builder that describes what pin input fields look like given the [InputFieldState]
   final PinInputBuilder pinInputBuilder;
 
   const AuthenticationSetupWidget({
