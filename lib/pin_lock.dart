@@ -16,23 +16,16 @@ export 'package:pin_lock/src/entities/failure.dart';
 export 'package:pin_lock/src/entities/lock_controller.dart';
 export 'package:pin_lock/src/entities/lock_state.dart';
 export 'package:pin_lock/src/entities/value_objects.dart';
-export 'package:pin_lock/src/presentation/setup/authentication_setup_widget.dart';
 export 'package:pin_lock/src/presentation/authenticator_widget.dart';
-export 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 export 'package:pin_lock/src/presentation/lock_screen/builders.dart';
+export 'package:pin_lock/src/presentation/pin_input.dart';
+export 'package:pin_lock/src/presentation/setup/authentication_setup_widget.dart';
+export 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 export 'package:pin_lock/src/repositories/pin_repository.dart';
 export 'package:pin_lock/src/repositories/pin_repository_impl.dart';
-export 'package:pin_lock/src/presentation/pin_input.dart';
 
 class PinLock {
   static const MethodChannel _channel = MethodChannel('pin_lock');
-
-  static Future<Authenticator> baseAuthenticator(String userId) async => PinLock.authenticatorInstance(
-        repository: LocalAuthenticationRepositoryImpl(await SharedPreferences.getInstance()),
-        biometricAuthenticator: LocalAuthentication(),
-        lockController: LockController(),
-        userId: UserId(userId),
-      );
 
   static Authenticator authenticatorInstance({
     required LocalAuthenticationRepository repository,
@@ -53,5 +46,12 @@ class PinLock {
         lockAfterDuration ?? const Duration(minutes: 5),
         pinLength ?? 4,
         userId,
+      );
+
+  static Future<Authenticator> baseAuthenticator(String userId) async => PinLock.authenticatorInstance(
+        repository: LocalAuthenticationRepositoryImpl(await SharedPreferences.getInstance()),
+        biometricAuthenticator: LocalAuthentication(),
+        lockController: LockController(),
+        userId: UserId(userId),
       );
 }

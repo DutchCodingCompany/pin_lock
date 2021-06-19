@@ -71,7 +71,6 @@ abstract class Authenticator with WidgetsBindingObserver {
 
   /// Returns [true] if the user has a pin set up. A pin has to be set up in order to enable
   /// biometric authentication
-  // TODO: Potentially rename
   Future<bool> isPinAuthenticationEnabled();
 
   /// Triggers the OS's biometric authentication and changes the [lockState] if successful
