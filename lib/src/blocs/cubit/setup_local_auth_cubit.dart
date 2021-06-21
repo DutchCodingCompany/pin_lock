@@ -15,6 +15,16 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
       final isPinAuthEnabled = await authenticator.isPinAuthenticationEnabled();
       emit(lastState.copyWith(isPinAuthEnabled: isPinAuthEnabled, isLoading: false));
 
+      if (!isPinAuthEnabled) {
+        emit(lastState.copyWith(
+          isBiometricAuthAvailable: false,
+          isBiometricAuthEnabled: false,
+          isLoading: false,
+          isPinAuthEnabled: isPinAuthEnabled,
+        ));
+        return;
+      }
+
       final biometrics = await authenticator.getBiometricAuthenticationAvailability();
       if (biometrics is Available) {
         emit(lastState.copyWith(
