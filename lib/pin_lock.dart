@@ -18,6 +18,7 @@ export 'package:pin_lock/src/entities/lock_state.dart';
 export 'package:pin_lock/src/entities/value_objects.dart';
 export 'package:pin_lock/src/presentation/authenticator_widget.dart';
 export 'package:pin_lock/src/presentation/lock_screen/builders.dart';
+export 'package:pin_lock/src/presentation/lock_screen/configurations.dart';
 export 'package:pin_lock/src/presentation/pin_input.dart';
 export 'package:pin_lock/src/presentation/setup/authentication_setup_widget.dart';
 export 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
