@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pin_lock/pin_lock.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_local_auth_cubit.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_stage.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
@@ -80,12 +81,14 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 onInput: (text) => bloc(context).pinEntered(text),
                 autofocus: true,
                 inputNodeBuilder: pinInputBuilder,
+                hasError: state.error != null,
               ),
               pinConfirmationWidget: PinInputWidget(
                 value: state.confirmationPin ?? '',
                 pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).pinConfirmationEntered(text),
                 inputNodeBuilder: pinInputBuilder,
+                hasError: state.error != null,
               ),
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onSubmitChange: () => bloc(context).savePin(),
@@ -103,6 +106,7 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 onInput: (text) => bloc(context).enterPinToDisable(text),
                 inputNodeBuilder: pinInputBuilder,
                 autofocus: true,
+                hasError: state.error != null,
               ),
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onChangeSubmitted: () => bloc(context).disablePinAuthentication(),
@@ -119,18 +123,22 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).enterPinToChange(text),
                 value: state.currentPin,
+                hasError: state.error != null && state.error != LocalAuthFailure.pinNotMatching,
               ),
               newPinInputWidget: PinInputWidget(
                 value: state.newPin,
                 pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).enterNewPin(text),
                 inputNodeBuilder: pinInputBuilder,
+                hasError: state.error == LocalAuthFailure.pinNotMatching,
               ),
               confirmNewPinInputWidget: PinInputWidget(
-                  value: state.confirmationPin,
-                  pinLength: authenticator.pinLength,
-                  onInput: (text) => bloc(context).pinConfirmationEntered(text),
-                  inputNodeBuilder: pinInputBuilder),
+                value: state.confirmationPin,
+                pinLength: authenticator.pinLength,
+                onInput: (text) => bloc(context).enterConfirmationPin(text),
+                inputNodeBuilder: pinInputBuilder,
+                hasError: state.error == LocalAuthFailure.pinNotMatching,
+              ),
               error: state.error,
               canSubmitChange: state.canGoFurther(authenticator.pinLength),
               onSubimtChange: () => bloc(context).changePin(),

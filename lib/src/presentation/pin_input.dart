@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 
-/// TODO: Add `error` state
 /// Describes the state of the given pin input field
 enum InputFieldState {
   /// The field is in it's initial state
@@ -11,6 +10,9 @@ enum InputFieldState {
 
   /// The filed is filled and focus has moved on to the next filed
   filled,
+
+  /// The field is cleared right after an unsuccessful attempt to unlock
+  error,
 }
 
 /// Gives an interface to which pin input widgets should conform

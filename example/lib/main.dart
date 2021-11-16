@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> {
               'Your data is locked for privacy reasons. You need to unlock the app to access your data.',
 
           /// Provide a widget that represents a single pin input field
-          inputNodeBuilder: (index, state) => _InputField(state: state),
+          inputNodeBuilder: (index, state) => _InputField(state: state, index: index),
 
           /// Provide a widget that describes what you want your lock screen to look like,
           /// given the state of the lock screen ([LockScreenConfiguration])
@@ -84,12 +84,19 @@ class _MyAppState extends State<MyApp> {
 /// the `0-th` or `(n-1)-th` input field
 class _InputField extends StatelessWidget {
   final InputFieldState state;
+  final int index;
   const _InputField({
     Key? key,
     required this.state,
+    required this.index,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final borderColor = state == InputFieldState.error ? Theme.of(context).errorColor : Theme.of(context).primaryColor;
+    double borderWidth = 1;
+    if (state == InputFieldState.focused || (state == InputFieldState.error && index == 0)) {
+      borderWidth = 4;
+    }
     return Container(
       height: 40,
       width: 46,
@@ -97,8 +104,8 @@ class _InputField extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Theme.of(context).primaryColor,
-          width: state == InputFieldState.focused ? 4 : 1,
+          color: borderColor,
+          width: borderWidth,
         ),
       ),
       child: state == InputFieldState.filled
@@ -205,7 +212,7 @@ class _SetupAuthWidget extends StatelessWidget {
 
         /// Pin input widget can be the same as on the lock screen, or you can provide a custom UI
         /// that you want to use when setting it up
-        pinInputBuilder: (index, state) => _InputField(state: state),
+        pinInputBuilder: (index, state) => _InputField(state: state, index: index),
 
         /// Overview refers to the first thing your user sees when getting to settings, before they have made
         /// any action, as well as after they made an action (such as changing pincode)

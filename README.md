@@ -14,6 +14,7 @@
 * ✅  Hide the app screen when switching between the apps 
 	* ⬜️ TODO: Hide the app preview only when pin authentication is enabled
 	* ⬜️ TODO: Make what is displayed in the preview customizable (currently it's a black screen for Android and a white/black screen depending on the system theme for iOS)
+* ✅  Support for multiple accounts using the same device
 * ⬜️ TODO: Block pin input retries after a specified amount of failed attempts for a specified amount of time
 * ⬜️ TODO: Implement a secondary pin (like a safety question) that enables unlocking the app if the primary pin is forgotten
 	

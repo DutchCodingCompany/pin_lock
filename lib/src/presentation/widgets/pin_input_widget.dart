@@ -8,6 +8,7 @@ class PinInputWidget extends StatefulWidget {
   final FocusNode? nextFocusNode;
   final Function(String) onInput;
   final bool autofocus;
+  final bool hasError;
 
   final PinInputBuilder inputNodeBuilder;
 
@@ -17,6 +18,7 @@ class PinInputWidget extends StatefulWidget {
     required this.pinLength,
     required this.onInput,
     required this.inputNodeBuilder,
+    required this.hasError,
     this.focusNode,
     this.nextFocusNode,
     this.autofocus = false,
@@ -37,6 +39,7 @@ class _PinInputWidgetState extends State<PinInputWidget> {
     if (widget.autofocus) {
       focusNode.requestFocus();
     }
+    focusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -57,6 +60,9 @@ class _PinInputWidgetState extends State<PinInputWidget> {
               children: List.generate(
                 widget.pinLength,
                 (index) {
+                  if (widget.hasError) {
+                    return widget.inputNodeBuilder(index, InputFieldState.error);
+                  }
                   if (index == selectedIndex && focusNode.hasFocus == true) {
                     return widget.inputNodeBuilder(index, InputFieldState.focused);
                   }

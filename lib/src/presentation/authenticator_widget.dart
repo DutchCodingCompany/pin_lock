@@ -151,6 +151,7 @@ class _LockScreen extends StatelessWidget {
                   BlocProvider.of<LockCubit>(context).enterPin(pin);
                 },
                 inputNodeBuilder: inputNodeBuilder,
+                hasError: state.error != null,
               ),
               isLoading: state.isLoading,
               error: state.error,
