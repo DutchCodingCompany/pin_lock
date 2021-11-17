@@ -41,8 +41,18 @@ class AuthenticatorWidget extends StatefulWidget {
   final String userFacingBiometricAuthenticationMessage;
 
   /// Describes what an individual pin input field is going to look like, given its
-  //// position ([index]) and its [InputFieldState]
+  /// position ([index]) and its [InputFieldState]
   final PinInputBuilder inputNodeBuilder;
+
+  /// If true, hides the app snapshot from App Switcher. On iOS it displays either the asset
+  /// passed as [iosImageAsset] or a black or white screen (depending on whether the phone is in dark or
+  /// light mode) if [iosImageAsset] is `null`
+  final bool hideAppContent;
+
+  /// Asset to display when the app is in App Switcher and [hideAppContent] is `true`. If `null`, a black or
+  /// white screen will be displayed instead (depending on whether the phone is in dark or light mode).
+  /// Ignored on Android.
+  final String? iosImageAsset;
 
   const AuthenticatorWidget({
     Key? key,
@@ -53,6 +63,8 @@ class AuthenticatorWidget extends StatefulWidget {
     required this.inputNodeBuilder,
     this.splashScreenBuilder,
     this.splashScreenDuration = const Duration(),
+    this.hideAppContent = true,
+    this.iosImageAsset,
   }) : super(key: key);
 
   @override
@@ -67,6 +79,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   @override
   void initState() {
     super.initState();
+    PinLock.setHideAppContent(widget.hideAppContent, iosAssetImage: widget.iosImageAsset);
     lockSubscription = widget.authenticator.lockState.listen((event) {
       if (event is Unlocked) {
         overlayEntry?.remove();
