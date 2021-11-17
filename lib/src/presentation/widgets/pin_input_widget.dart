@@ -47,7 +47,6 @@ class _PinInputWidgetState extends State<PinInputWidget> {
     if (controller.text != widget.value) {
       controller.text = widget.value;
     }
-    final selectedIndex = widget.value.length;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -63,13 +62,7 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                   if (widget.hasError) {
                     return widget.inputNodeBuilder(index, InputFieldState.error);
                   }
-                  if (index == selectedIndex && focusNode.hasFocus == true) {
-                    return widget.inputNodeBuilder(index, InputFieldState.focused);
-                  }
-                  if (index < selectedIndex) {
-                    return widget.inputNodeBuilder(index, InputFieldState.filled);
-                  }
-                  return widget.inputNodeBuilder(index, InputFieldState.empty);
+                  return widget.inputNodeBuilder(index, _determineState(index));
                 },
               ),
             ),
@@ -94,5 +87,24 @@ class _PinInputWidgetState extends State<PinInputWidget> {
         ),
       ],
     );
+  }
+
+  InputFieldState _determineState(int position) {
+    final nextFocusPosition = widget.value.length;
+
+    // already filled input fields
+    if (position < nextFocusPosition) {
+      // if the last field is filled and the input still has focus
+      if (position == widget.pinLength - 1 && focusNode.hasFocus) {
+        return InputFieldState.filledAndFocused;
+      }
+      return InputFieldState.filled;
+    } else if (position == nextFocusPosition && focusNode.hasFocus) {
+      // represents next value to be entered
+      return InputFieldState.focused;
+    } else {
+      // fields not yet filled
+      return InputFieldState.empty;
+    }
   }
 }

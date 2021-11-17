@@ -94,7 +94,7 @@ class _InputField extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderColor = state == InputFieldState.error ? Theme.of(context).errorColor : Theme.of(context).primaryColor;
     double borderWidth = 1;
-    if (state == InputFieldState.focused || (state == InputFieldState.error && index == 0)) {
+    if (state == InputFieldState.focused || state == InputFieldState.filledAndFocused) {
       borderWidth = 4;
     }
     return Container(
@@ -108,7 +108,7 @@ class _InputField extends StatelessWidget {
           width: borderWidth,
         ),
       ),
-      child: state == InputFieldState.filled
+      child: state == InputFieldState.filled || state == InputFieldState.filledAndFocused
           ? Center(
               child: Container(
                 width: 6,

@@ -11,6 +11,9 @@ enum InputFieldState {
   /// The filed is filled and focus has moved on to the next filed
   filled,
 
+  /// The field is filled and input widget is focused (likely to be the last field)
+  filledAndFocused,
+
   /// The field is cleared right after an unsuccessful attempt to unlock
   error,
 }
