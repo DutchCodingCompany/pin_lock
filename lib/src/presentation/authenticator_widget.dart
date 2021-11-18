@@ -44,12 +44,13 @@ class AuthenticatorWidget extends StatefulWidget {
   /// position ([index]) and its [InputFieldState]
   final PinInputBuilder inputNodeBuilder;
 
-  /// If true, hides the app snapshot from App Switcher. On iOS it displays either the asset
+  /// If true, hides the app thumbnail from App Switcher. On iOS it displays either the asset
   /// passed as [iosImageAsset] or a black or white screen (depending on whether the phone is in dark or
-  /// light mode) if [iosImageAsset] is `null`
+  /// light mode) if [iosImageAsset] is `null`.
+  /// On Android `LayoutParams.FLAG_SECURE` is used, resulting in a black screen instead of thumbnail.
   final bool hideAppContent;
 
-  /// Asset to display when the app is in App Switcher and [hideAppContent] is `true`. If `null`, a black or
+  /// iOS only! Asset to display when the app is in App Switcher and [hideAppContent] is `true`. If `null`, a black or
   /// white screen will be displayed instead (depending on whether the phone is in dark or light mode).
   /// Ignored on Android.
   final String? iosImageAsset;
