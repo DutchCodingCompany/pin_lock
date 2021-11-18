@@ -69,6 +69,9 @@ class _MyAppState extends State<MyApp> {
           /// given the state of the lock screen ([LockScreenConfiguration])
           lockScreenBuilder: (configuration) => _LockScreen(configuration),
 
+          /// Optional image to use to prevent from showing app content in the App Switcher.
+          iosImageAsset: 'AppIcon',
+
           /// [child] should be the widget that you'd normally pass in as [home] of your [MaterialApp]
           child: _Home(),
         ),
