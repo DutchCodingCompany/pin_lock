@@ -9,7 +9,7 @@ import 'package:pin_lock/src/entities/lock_state.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 
 abstract class Authenticator with WidgetsBindingObserver {
-  // TODO: Implement and document
+  /// Interval after which the app will become pin locked after entering the background
   Duration get lockAfterDuration;
 
   /// Emits a [LockState] event every time the state is changed
@@ -43,7 +43,6 @@ abstract class Authenticator with WidgetsBindingObserver {
 
   /// Disables locking the app completely, including biometric authentication
   /// Only happens if provided [pin] is correct, or if [force] is true (which should be avoided)
-  /// TODO: Maybe implement recovery question, as a form of secondary pin?
   Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({required Pin pin, bool force = false});
 
   /// Disables biometric authentication. If [requirePin] is true, it is necessary to provide the correct [pin]

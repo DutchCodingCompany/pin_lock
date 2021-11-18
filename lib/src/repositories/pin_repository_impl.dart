@@ -1,6 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:pin_lock/pin_lock.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository {
   final SharedPreferences sp;

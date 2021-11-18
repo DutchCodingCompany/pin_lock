@@ -5,11 +5,11 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/authenticator_impl.dart';
+import 'package:pin_lock/src/entities/biometric_availability.dart';
 import 'package:pin_lock/src/entities/failure.dart';
 import 'package:pin_lock/src/entities/lock_controller.dart';
 import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:pin_lock/src/repositories/pin_repository.dart';
-import 'package:pin_lock/src/entities/biometric_availability.dart';
 
 import 'authenticator_test.mocks.dart';
 

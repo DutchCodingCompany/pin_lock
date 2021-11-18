@@ -43,30 +43,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     return _lockController.state;
   }
 
-  @override
-  Future<Either<LocalAuthFailure, Unit>> changePinCode({
-    required Pin oldPin,
-    required Pin newPin,
-    required Pin newPinConfirmation,
-  }) async {
-    final isEnabled = await isPinAuthenticationEnabled();
-    if (!isEnabled) {
-      return const Left(LocalAuthFailure.unknown);
-    }
-    final unlockAttempt = await unlockWithPin(pin: oldPin);
-    if (unlockAttempt.isLeft()) {
-      return unlockAttempt;
-    }
-    if (newPin != newPinConfirmation) {
-      return const Left(LocalAuthFailure.pinNotMatching);
-    }
-    try {
-      await _repository.setPin(newPin, forUser: userId);
-      return const Right(unit);
-    } catch (e) {
-      return const Left(LocalAuthFailure.unknown);
-    }
-  }
+  /// -- WidgetsBindingObserver 
 
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
@@ -104,6 +81,47 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
 
     /// Keep track of the last known state
     _lastState = state;
+  }
+
+  /// -- Setup authentication --
+
+  @override
+  Future<Either<LocalAuthFailure, Unit>> enablePinAuthentication({
+    required Pin pin,
+    required Pin confirmationPin,
+  }) async {
+    final existingPin = await _repository.getPin(forUser: userId);
+    if (existingPin != null) {
+      return const Left(LocalAuthFailure.alreadySetUp);
+    }
+    if (pin != confirmationPin) {
+      return const Left(LocalAuthFailure.pinNotMatching);
+    }
+    try {
+      await _repository.enablePinAuthentication(pin: pin, userId: userId);
+      return const Right(unit);
+    } catch (e) {
+      return const Left(LocalAuthFailure.unknown);
+    }
+  }
+
+  @override
+  Future<Either<LocalAuthFailure, Unit>> enableBiometricAuthentication() async {
+    final isBiometricSupported = await _biometricAuth.canCheckBiometrics;
+    if (!isBiometricSupported) {
+      return const Left(LocalAuthFailure.notAvailable);
+    }
+    final availableMethods = await _biometricAuth.getAvailableBiometrics();
+    if (availableMethods.isEmpty) {
+      return const Left(LocalAuthFailure.notAvailable);
+    }
+
+    try {
+      await _repository.enableBiometricAuthentication(userId: userId);
+      return const Right(unit);
+    } catch (e) {
+      return const Left(LocalAuthFailure.unknown);
+    }
   }
 
   @override
@@ -147,40 +165,24 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }
 
   @override
-  Future<Either<LocalAuthFailure, Unit>> enableBiometricAuthentication() async {
-    final isBiometricSupported = await _biometricAuth.canCheckBiometrics;
-    if (!isBiometricSupported) {
-      return const Left(LocalAuthFailure.notAvailable);
-    }
-    final availableMethods = await _biometricAuth.getAvailableBiometrics();
-    if (availableMethods.isEmpty) {
-      return const Left(LocalAuthFailure.notAvailable);
-    }
-
-    try {
-      await _repository.enableBiometricAuthentication(userId: userId);
-      return const Right(unit);
-    } catch (e) {
+  Future<Either<LocalAuthFailure, Unit>> changePinCode({
+    required Pin oldPin,
+    required Pin newPin,
+    required Pin newPinConfirmation,
+  }) async {
+    final isEnabled = await isPinAuthenticationEnabled();
+    if (!isEnabled) {
       return const Left(LocalAuthFailure.unknown);
     }
-  }
-
-  /// -- Setup authentication --
-
-  @override
-  Future<Either<LocalAuthFailure, Unit>> enablePinAuthentication({
-    required Pin pin,
-    required Pin confirmationPin,
-  }) async {
-    final existingPin = await _repository.getPin(forUser: userId);
-    if (existingPin != null) {
-      return const Left(LocalAuthFailure.alreadySetUp);
+    final unlockAttempt = await unlockWithPin(pin: oldPin);
+    if (unlockAttempt.isLeft()) {
+      return unlockAttempt;
     }
-    if (pin != confirmationPin) {
+    if (newPin != newPinConfirmation) {
       return const Left(LocalAuthFailure.pinNotMatching);
     }
     try {
-      await _repository.enablePinAuthentication(pin: pin, userId: userId);
+      await _repository.setPin(newPin, forUser: userId);
       return const Right(unit);
     } catch (e) {
       return const Left(LocalAuthFailure.unknown);
@@ -223,6 +225,30 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     return storedValue ?? false;
   }
 
+  /// -- Usage --
+
+  @override
+  Future<Either<LocalAuthFailure, Unit>> unlockWithPin({required Pin pin}) async {
+    final isEnabled = await isPinAuthenticationEnabled();
+    if (!isEnabled) {
+      _lockController.unlock();
+      return const Right(unit);
+    }
+    if (await _isLockedDueToTooManyAttempts()) {
+      return const Left(LocalAuthFailure.tooManyAttempts);
+    }
+
+    final userPin = await _repository.getPin(forUser: userId);
+    if (userPin?.value != pin.value) {
+      await _repository.addFailedAttempt(DateTime.now(), forUser: userId);
+      return const Left(LocalAuthFailure.wrongPin);
+    }
+    await _repository.resetFailedAttempts(ofUser: userId);
+    _lockController.unlock();
+    _repository.clearLastPausedTimestamp();
+    return const Right(unit);
+  }
+
   @override
   Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics({required String userFacingExplanation}) async {
     final biometricAvailability = await getBiometricAuthenticationAvailability();
@@ -231,6 +257,10 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         _lockController.lock(availableMethods: const []);
         return const Left(LocalAuthFailure.notAvailable);
       }
+      if (await _isLockedDueToTooManyAttempts()) {
+        return const Left(LocalAuthFailure.tooManyAttempts);
+      }
+
       try {
         final isSuccessful = await _biometricAuth.authenticate(
           localizedReason: userFacingExplanation,
@@ -254,34 +284,20 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     return const Left(LocalAuthFailure.unknown);
   }
 
-  /// -- Usage --
+  /// -- Helpers --
 
-  @override
-  Future<Either<LocalAuthFailure, Unit>> unlockWithPin({required Pin pin}) async {
-    final isEnabled = await isPinAuthenticationEnabled();
-    if (!isEnabled) {
-      _lockController.unlock();
-      return const Right(unit);
-    }
+  Future<bool> _supportsBiometricAuthentication() {
+    return _biometricAuth.isDeviceSupported();
+  }
+
+  Future<bool> _isLockedDueToTooManyAttempts() async {
     final failedAttemptsList = await _repository.getListOfFailedAttempts(userId: userId);
     if (failedAttemptsList.length > maxRetries) {
-      // TODO: Return failure and time remaining maybe?
-      // TODO: Increase the remaining time after each unsucessfull attempt? (with a cap to prevent infinite lockout)
-      // TODO: A custom per-app increase function? (int attempts)-> int duration
-      return const Left(LocalAuthFailure.tooManyAttempts);
+      if (DateTime.now().difference(failedAttemptsList.last) < lockedOutDuration) {
+        return true;
+      }
     }
-
-    final userPin = await _repository.getPin(forUser: userId);
-    if (userPin?.value != pin.value) {
-      await _repository.addFailedAttempt(DateTime.now(), forUser: userId);
-      return const Left(LocalAuthFailure.wrongPin);
-    }
-    if (failedAttemptsList.isNotEmpty) {
-      await _repository.resetFailedAttempts(ofUser: userId);
-    }
-    _lockController.unlock();
-    _repository.clearLastPausedTimestamp();
-    return const Right(unit);
+    return false;
   }
 
   Future<void> _checkInitialLockStatus() async {
@@ -299,12 +315,6 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         _lockController.lock(availableMethods: const []);
       }
     }
-  }
-
-  /// -- Helpers --
-
-  Future<bool> _supportsBiometricAuthentication() {
-    return _biometricAuth.isDeviceSupported();
   }
 }
 

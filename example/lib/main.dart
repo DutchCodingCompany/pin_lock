@@ -51,30 +51,29 @@ class _MyAppState extends State<MyApp> {
           bodyText2: TextStyle(color: Colors.indigo),
         ),
       ),
-      home: Builder(
-        /// Use the [AuthenticatorWidget] as the root widget of the part of the application that
-        /// needs to be protected by a pin lock
-        builder: (navContext) => AuthenticatorWidget(
-          /// Pass a reference to your [Authenticator] singleton
-          authenticator: globalAuthenticator,
 
-          /// Provide a string that users will see when biometric authentication is triggered
-          userFacingBiometricAuthenticationMessage:
-              'Your data is locked for privacy reasons. You need to unlock the app to access your data.',
+      /// Use the [AuthenticatorWidget] as the root widget of the part of the application that
+      /// needs to be protected by a pin lock
+      home: AuthenticatorWidget(
+        /// Pass a reference to your [Authenticator] singleton
+        authenticator: globalAuthenticator,
 
-          /// Provide a widget that represents a single pin input field
-          inputNodeBuilder: (index, state) => _InputField(state: state, index: index),
+        /// Provide a string that users will see when biometric authentication is triggered
+        userFacingBiometricAuthenticationMessage:
+            'Your data is locked for privacy reasons. You need to unlock the app to access your data.',
 
-          /// Provide a widget that describes what you want your lock screen to look like,
-          /// given the state of the lock screen ([LockScreenConfiguration])
-          lockScreenBuilder: (configuration) => _LockScreen(configuration),
+        /// Provide a widget that represents a single pin input field
+        inputNodeBuilder: (index, state) => _InputField(state: state, index: index),
 
-          /// Optional image to use to prevent from showing app content in the App Switcher.
-          iosImageAsset: 'AppIcon',
+        /// Provide a widget that describes what you want your lock screen to look like,
+        /// given the state of the lock screen ([LockScreenConfiguration])
+        lockScreenBuilder: (configuration) => _LockScreen(configuration),
 
-          /// [child] should be the widget that you'd normally pass in as [home] of your [MaterialApp]
-          child: _Home(),
-        ),
+        /// Optional image to use to prevent from showing app content in the App Switcher.
+        iosImageAsset: 'AppIcon',
+
+        /// [child] should be the widget that you'd normally pass in as [home] of your [MaterialApp]
+        child: _Home(),
       ),
     );
   }

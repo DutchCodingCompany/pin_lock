@@ -51,7 +51,7 @@ class PinLock {
         biometricAuthenticator,
         lockController,
         maxRetries ?? 5,
-        lockedOutDuration ?? const Duration(minutes: 5),
+        lockedOutDuration ?? const Duration(minutes: 1),
         lockAfterDuration ?? const Duration(seconds: 5),
         pinLength ?? 4,
         userId,
