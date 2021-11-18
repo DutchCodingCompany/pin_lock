@@ -33,8 +33,7 @@ public class SwiftPinLockPlugin: NSObject, FlutterPlugin {
         })
     }
     
-    
-    public func applicationWillResignActive(_ application: UIApplication) {
+    public func applicationDidEnterBackground(_ application: UIApplication) {
         if (hideAppContent) {
             UIApplication.shared.ignoreSnapshotOnNextApplicationLaunch()
             if let window = UIApplication.shared.windows.filter({ (w) -> Bool in
