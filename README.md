@@ -1,29 +1,115 @@
 # pin_lock
 
-**pin_lock** package takes care of the implementation of securing the app with a pin code, so that the developer can focus on building the app-specific UI without thinking about the implementation details, which are similar for all apps.
-
+`pin_lock` aims to be a full solution to local authentication on Android and iOS. It takes care of implementing authentication logic and tracking authentication-relevant data, while providing an interface allowing the developers to write UI code that seamlessly fits in with their app's look and feel.
 ## Features
-* ✅  Locks the screen of the app when the app is first opened if pin authentication is enabled
-* ✅  Locks the screen after a the app has been in the background for a specified period of time
+
+#### Locking functionality
+* ✅  App is protected with a pin code when opened (if pin code is enabled)
+* ✅  Lock the app after it has been in the background for a specified period of time
 * ✅  Unlock with a (numeric) pincode
 * ✅  Unlock with native biometric authentication (fingerprint, faceID, iris)
-* ✅  Implements standard pin authentication flows:
-	* ✅  enabling pin (with confirmation pin)
-	* ✅  disabling pin 
-	* ✅  changing pin 
-* ✅  Hide the app screen when switching between the apps 
-	* ⬜️ TODO: Hide the app preview only when pin authentication is enabled
-	* ⬜️ TODO: Make what is displayed in the preview customizable (currently it's a black screen for Android and a white/black screen depending on the system theme for iOS)
+* ✅  Block authentication attempts after a specified number of incorrect pin inputs for a specified amount of time
+* ✅  Optionally hide the app preview (thumbnail) when switching between the apps (multitasking)
+		* ✅ iOS: Add an custom placeholder asset to be shown in the App Switcher
 * ✅  Support for multiple accounts using the same device
-* ⬜️ TODO: Block pin input retries after a specified amount of failed attempts for a specified amount of time
-* ⬜️ TODO: Implement a secondary pin (like a safety question) that enables unlocking the app if the primary pin is forgotten
-	
+
+#### Locking setup 
+* ✅  Implements standard pin authentication flows:
+	* ✅  enabling pin (with required re-entering for confirmation)
+	* ✅  disabling pin (requires current pin before disabling)
+	* ✅  changing pin (requires current pin, new pin and new pin confirmation)
+
+#### Planned
+* ⬜️ TODO: Hiding the app preview only if pin code is enabled.
+* ⬜️ TODO: Refine blocking authentication after `x` incorrect pin inputs
+	* ⬜️ TODO: Make pin input `disabled` when authentication is blocked
+	* ⬜️ TODO: Pass the duration for which the authentication is blocked to the UI
+* ⬜️ TODO: Implement an optional secondary pin (like a safety question) that enables unlocking the app if the primary pin is forgotten
+* ⬜️ TODO: Add an optional logout button to the locked screen, enabling the user to change the account without uninstalling the app.
+
 ### Known issues
-* ⬜️ App switcher overlay gets triggered when doing biometric authentication, hiding the lock screen
 
 ## Permissions and integration
-// TODO: Describe which permissions are needed
-// TODO: WidgetsBindingObserver explanation
+
+### iOS
+If you want to make use of biometric authentication, add `NSFaceIDUsageDescription` to your app's `Info.plist` file.
+
+```plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<... other stuff ...>
+	<key>NSFaceIDUsageDescription</key>
+	<string>You can use biometric authentication to secure access to your data.</string>
+</dict>
+</plist>
+```
+### Android
+Make sure that your main activity extends `FlutterFragmentActivity`, e.g.:
+```kotlin
+package ...your package name...
+
+import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugins.GeneratedPluginRegistrant
+
+class MainActivity: FlutterFragmentActivity() {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        GeneratedPluginRegistrant.registerWith(flutterEngine)
+    }
+}
+```
+
+### `WidgetsBindingObserver`
+To enable automatic locking of the app after it has been in the background for a specified amount of time, you need to let the `pin_lock` plugin observe app lifecycle. In the root widget of the part of the app that you want to be lockable (e.g., you might not want to include your onboarding or login screen) add the following:
+
+```dart
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addObserver(authenticatorInstance);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(authenticatorInstance);
+    super.dispose();
+  }
+```
+In practice, the best place to register `Authenticator` as an observer would be right above the `AuthenticatorWidget`
 
 ## Usage
+Most interaction happens with three main plugin components:
+  - global `Authenticator` class which is the brain of the operation and through which you can configure most of the preferences for how the local authentication is implemented.
+  - `AuthenticatorWidget` which is the root of the secured part of the app and through which you will configure the UI of your lock screen
+  - `AuthenticatonSetupWidget` that accepts descriptions of what different stages of authentication setup should look like. It is meant to be inserted into the settings/preferences section of your app, and can be made to fit exactly with you app's style.
+
+### Setup `Authenticator`
+
+The first thing to do when integrating the package is to create a globally accessible (singleton) instance of the `Authenticator`. There are two convenience initializers you can use. The `PinLock.baseAuthenticator()` is a quick way to get an instance with all the default settings. If you want to change any of the default settings or use your own implementation of any of the components of it, `PinLock.authenticatorInstance()` factory method allows you to create it.
+```dart
+  authenticator = await PinLock.baseAuthenticator('1');
+  // or
+  authenticator = await PinLock.authenticatorInstance(userId: '1', ...the rest of your configuration here...);
+```
+`userId` is a `String` parameter that enables multiple users to use the app with different pin codes. Here you would provide a value that you can guarantee is unique for your users (like their username or user id). 
+If you do not want to support multiple accounts on a single device, you can provide a hard coded string value instead. In this case, you need to **make sure you disable pin authentication on logout**, otherwise your next user will not be to use the app on the same device without reinstalling it.
+
+### Setup `AuthenticatorWidget`
+
+`AuthenticatorWidget` is the root of the secured part of your application. Normally, you would want it to encompass your entire application except for onboarding, sign in and sign up flows (at which point you also do not know the identity of your user, meaning that you cannot provide a reliable `userId`).
+
+The core parameters of `AuthenticatorWidget` are:
+- `child` - which is you application's normal code
+- `pinNodeBuilder` - which is a builder function through which you provide information about what the individual input fields should look like, given the `state` that they are in
+- `lockScreenBuilder` - which is another builder function through which you describe what you want your whole pin input screen to look like (given the `LockScreenConfiguration`)
+
+### Setup `AuthenticatonSetupWidget`
+
+
+
 // TODO: Usage + philosopy behind builders and configurations
+
+## Extensibility
+// TODO: Describe how any part of the `Authenticator` can be replaced (e.g., if you don't want to use `SharedPreferences`)

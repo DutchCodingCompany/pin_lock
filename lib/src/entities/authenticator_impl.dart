@@ -27,14 +27,14 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   final UserId userId;
 
   AuthenticatorImpl(
-    this._repository,
-    this._biometricAuth,
-    this._lockController,
-    this.maxRetries,
-    this.lockedOutDuration,
-    this.lockAfterDuration,
-    this.pinLength,
-    this.userId,
+      this._repository,
+      this._biometricAuth,
+      this._lockController,
+      this.maxRetries,
+      this.lockedOutDuration,
+      this.lockAfterDuration,
+      this.pinLength,
+      this.userId,
   );
 
   @override
@@ -43,7 +43,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     return _lockController.state;
   }
 
-  /// -- WidgetsBindingObserver 
+  /// -- WidgetsBindingObserver
 
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
@@ -263,8 +263,8 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
 
       try {
         final isSuccessful = await _biometricAuth.authenticate(
-          localizedReason: userFacingExplanation,
-          biometricOnly: true,
+            localizedReason: userFacingExplanation,
+            biometricOnly: true,
         );
         if (isSuccessful) {
           _lockController.unlock();
@@ -308,7 +308,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
       final biometric = await getBiometricAuthenticationAvailability();
       if (biometric is Available) {
         _lockController.lock(
-          availableMethods: biometric.isEnabled ? await getAvailableBiometricMethods() : const [],
+            availableMethods: biometric.isEnabled ? await getAvailableBiometricMethods() : const [],
         );
       }
       if (biometric is Unavailable) {
