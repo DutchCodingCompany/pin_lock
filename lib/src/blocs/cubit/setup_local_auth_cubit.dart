@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/src/blocs/cubit/setup_stage.dart';
 import 'package:pin_lock/src/entities/authenticator.dart';
 import 'package:pin_lock/src/entities/biometric_availability.dart';
