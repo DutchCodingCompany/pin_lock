@@ -340,7 +340,7 @@ class _SetupAuthWidget extends StatelessWidget {
               ),
             const Text('Enter new pin'),
             configuration.newPinInputWidget,
-            const Text('confirm new pin'),
+            const Text('Confirm new pin'),
             configuration.confirmNewPinInputWidget,
             if (configuration.error != null && !_isCurrentPinIssue(configuration.error))
               Text(
@@ -350,7 +350,7 @@ class _SetupAuthWidget extends StatelessWidget {
             if (configuration.canSubmitChange)
               TextButton(
                 onPressed: configuration.onSubimtChange,
-                child: const Text('save'),
+                child: const Text('Save'),
               )
           ],
         ),
