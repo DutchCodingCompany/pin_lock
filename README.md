@@ -1,4 +1,4 @@
-# pin_lock
+# 🔒 pin_lock
 
 All apps are unique in the look and feel of their local authentication layer: lock screens and pincode setup flows are a great canvas for expressing your app's personality. 
 
