@@ -1,15 +1,18 @@
 import 'package:pin_lock/pin_lock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository {
+class LocalAuthenticationRepositoryImpl
+    implements LocalAuthenticationRepository {
   final SharedPreferences sp;
 
   LocalAuthenticationRepositoryImpl(this.sp);
 
   SPKey _keyBoolPinEnabled(UserId userId) => SPKey('pin_enabled$userId');
-  SPKey _keyBoolBiometricsEnabled(UserId userId) => SPKey('biometric_enabled$userId');
+  SPKey _keyBoolBiometricsEnabled(UserId userId) =>
+      SPKey('biometric_enabled$userId');
   SPKey _keyStringPin(UserId userId) => SPKey('pin$userId');
-  SPKey _keyListFailedAttempts(UserId userId) => SPKey('failed_attempts$userId');
+  SPKey _keyListFailedAttempts(UserId userId) =>
+      SPKey('failed_attempts$userId');
 
   static const String _keyPausedTimestamp = 'key_paused';
 
@@ -23,7 +26,8 @@ class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository
   }
 
   @override
-  Future<bool?> isBiometricAuthenticationEnabled({required UserId userId}) async {
+  Future<bool?> isBiometricAuthenticationEnabled(
+      {required UserId userId}) async {
     try {
       return sp.getBool(_keyBoolBiometricsEnabled(userId).value);
     } catch (e) {
@@ -32,7 +36,8 @@ class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository
   }
 
   @override
-  Future<void> enablePinAuthentication({required Pin pin, required UserId userId}) async {
+  Future<void> enablePinAuthentication(
+      {required Pin pin, required UserId userId}) async {
     sp.setBool(_keyBoolPinEnabled(userId).value, true);
     sp.setString(_keyStringPin(userId).value, pin.value);
   }
@@ -68,7 +73,8 @@ class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository
   }
 
   @override
-  Future<List<DateTime>> getListOfFailedAttempts({required UserId userId}) async {
+  Future<List<DateTime>> getListOfFailedAttempts(
+      {required UserId userId}) async {
     final list = sp.getStringList(_keyListFailedAttempts(userId).value);
     if (list == null) {
       return <DateTime>[];
@@ -77,7 +83,8 @@ class LocalAuthenticationRepositoryImpl implements LocalAuthenticationRepository
   }
 
   @override
-  Future<void> addFailedAttempt(DateTime timestamp, {required UserId forUser}) async {
+  Future<void> addFailedAttempt(DateTime timestamp,
+      {required UserId forUser}) async {
     final key = _keyListFailedAttempts(forUser).value;
     final list = sp.getStringList(key);
     if (list == null) {

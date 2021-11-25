@@ -13,7 +13,8 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
     final lastState = state;
     if (lastState is Base) {
       final isPinAuthEnabled = await authenticator.isPinAuthenticationEnabled();
-      emit(lastState.copyWith(isPinAuthEnabled: isPinAuthEnabled, isLoading: false));
+      emit(lastState.copyWith(
+          isPinAuthEnabled: isPinAuthEnabled, isLoading: false));
 
       if (!isPinAuthEnabled) {
         emit(lastState.copyWith(
@@ -25,7 +26,8 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
         return;
       }
 
-      final biometrics = await authenticator.getBiometricAuthenticationAvailability();
+      final biometrics =
+          await authenticator.getBiometricAuthenticationAvailability();
       if (biometrics is Available) {
         emit(lastState.copyWith(
           isPinAuthEnabled: isPinAuthEnabled,
@@ -51,12 +53,14 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   Future<void> toggleBiometricAuthentication() async {
     final lastState = state;
     if (lastState is Base) {
-      final biometricAvailability = await authenticator.getBiometricAuthenticationAvailability();
+      final biometricAvailability =
+          await authenticator.getBiometricAuthenticationAvailability();
       if (biometricAvailability is Available) {
         final result = biometricAvailability.isEnabled
             ? await authenticator.disableBiometricAuthentication()
             : await authenticator.enableBiometricAuthentication();
-        result.fold((l) => emit(lastState.copyWith(error: l)), (r) => checkInitialState());
+        result.fold((l) => emit(lastState.copyWith(error: l)),
+            (r) => checkInitialState());
       }
     }
   }
@@ -117,7 +121,8 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
   Future<void> disablePinAuthentication() async {
     final lastState = state;
     if (lastState is Disabling) {
-      final result = await authenticator.disableAuthenticationWithPin(pin: Pin(lastState.pin));
+      final result = await authenticator.disableAuthenticationWithPin(
+          pin: Pin(lastState.pin));
       result.fold(
         (l) => emit(lastState.copyWith(pin: '', error: l)),
         (r) => checkInitialState(),

@@ -12,7 +12,8 @@ abstract class LocalAuthenticationRepository {
 
   /// Writes to the repository the user's preference to have local authentication enabled
   /// with the given [pin], for the user with [userId]
-  Future<void> enablePinAuthentication({required Pin pin, required UserId userId});
+  Future<void> enablePinAuthentication(
+      {required Pin pin, required UserId userId});
 
   Future<void> enableBiometricAuthentication({required UserId userId});
 

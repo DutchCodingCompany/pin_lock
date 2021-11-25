@@ -22,28 +22,33 @@ void main() {
     test('returns true when true in SP', () async {
       final key = SPKey('pin_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => true);
-      final answer = await repository.isPinAuthenticationEnabled(userId: UserId('1'));
+      final answer =
+          await repository.isPinAuthenticationEnabled(userId: UserId('1'));
       expect(answer, true);
     });
 
     test('returns false when false in SP', () async {
       final key = SPKey('pin_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => false);
-      final answer = await repository.isPinAuthenticationEnabled(userId: UserId('1'));
+      final answer =
+          await repository.isPinAuthenticationEnabled(userId: UserId('1'));
       expect(answer, false);
     });
 
     test('returns null when null in SP', () async {
       final key = SPKey('pin_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => null);
-      final answer = await repository.isPinAuthenticationEnabled(userId: UserId('1'));
+      final answer =
+          await repository.isPinAuthenticationEnabled(userId: UserId('1'));
       expect(answer, null);
     });
 
     test('returns null if reading from SP fails', () async {
       final key = SPKey('pin_enabled${UserId("1")}').value;
-      when(sharedPreferences.getBool(key)).thenThrow((_) => Exception('something went wrong'));
-      final answer = await repository.isPinAuthenticationEnabled(userId: UserId('1'));
+      when(sharedPreferences.getBool(key))
+          .thenThrow((_) => Exception('something went wrong'));
+      final answer =
+          await repository.isPinAuthenticationEnabled(userId: UserId('1'));
       expect(answer, null);
     });
   });
@@ -52,28 +57,33 @@ void main() {
     test('returns true when true in SP', () async {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => true);
-      final answer = await repository.isBiometricAuthenticationEnabled(userId: UserId('1'));
+      final answer = await repository.isBiometricAuthenticationEnabled(
+          userId: UserId('1'));
       expect(answer, true);
     });
 
     test('returns false when false in SP', () async {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => false);
-      final answer = await repository.isBiometricAuthenticationEnabled(userId: UserId('1'));
+      final answer = await repository.isBiometricAuthenticationEnabled(
+          userId: UserId('1'));
       expect(answer, false);
     });
 
     test('returns null when null in SP', () async {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => null);
-      final answer = await repository.isBiometricAuthenticationEnabled(userId: UserId('1'));
+      final answer = await repository.isBiometricAuthenticationEnabled(
+          userId: UserId('1'));
       expect(answer, null);
     });
 
     test('returns null if reading from SP fails', () async {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
-      when(sharedPreferences.getBool(key)).thenThrow((_) => Exception('something went wrong'));
-      final answer = await repository.isBiometricAuthenticationEnabled(userId: UserId('1'));
+      when(sharedPreferences.getBool(key))
+          .thenThrow((_) => Exception('something went wrong'));
+      final answer = await repository.isBiometricAuthenticationEnabled(
+          userId: UserId('1'));
       expect(answer, null);
     });
   });
@@ -84,8 +94,10 @@ void main() {
       final boolKey = SPKey('pin_enabled$user').value;
       final pinKey = SPKey('pin$user');
       final pin = Pin('1234');
-      when(sharedPreferences.setBool(boolKey, true)).thenAnswer((_) async => true);
-      when(sharedPreferences.setString(pinKey.value, pin.value)).thenAnswer((_) async => true);
+      when(sharedPreferences.setBool(boolKey, true))
+          .thenAnswer((_) async => true);
+      when(sharedPreferences.setString(pinKey.value, pin.value))
+          .thenAnswer((_) async => true);
       repository.enablePinAuthentication(pin: pin, userId: user);
       verify(sharedPreferences.setBool(boolKey, true));
       verify(sharedPreferences.setString(pinKey.value, pin.value));
@@ -94,8 +106,10 @@ void main() {
       final user = UserId('1');
       final boolKey = SPKey('pin_enabled$user').value;
       final pinKey = SPKey('pin$user');
-      when(sharedPreferences.setBool(boolKey, false)).thenAnswer((_) async => true);
-      when(sharedPreferences.remove(pinKey.value)).thenAnswer((_) async => true);
+      when(sharedPreferences.setBool(boolKey, false))
+          .thenAnswer((_) async => true);
+      when(sharedPreferences.remove(pinKey.value))
+          .thenAnswer((_) async => true);
       repository.disableLocalAuthentication(userId: user);
       verify(sharedPreferences.setBool(boolKey, false));
       verify(sharedPreferences.remove(pinKey.value));
@@ -106,14 +120,16 @@ void main() {
     test('enableBiometricAuthentication', () {
       final user = UserId('1');
       final boolKey = SPKey('biometric_enabled$user').value;
-      when(sharedPreferences.setBool(boolKey, true)).thenAnswer((_) async => true);
+      when(sharedPreferences.setBool(boolKey, true))
+          .thenAnswer((_) async => true);
       repository.enableBiometricAuthentication(userId: user);
       verify(sharedPreferences.setBool(boolKey, true));
     });
     test('disableBiometricAuthentication', () {
       final user = UserId('1');
       final boolKey = SPKey('biometric_enabled$user').value;
-      when(sharedPreferences.setBool(boolKey, false)).thenAnswer((_) async => true);
+      when(sharedPreferences.setBool(boolKey, false))
+          .thenAnswer((_) async => true);
       repository.disableBiometricAuthentication(userId: user);
       verify(sharedPreferences.setBool(boolKey, false));
     });
@@ -143,8 +159,10 @@ void main() {
       final boolKey = SPKey('pin_enabled$user').value;
       final pinKey = SPKey('pin$user');
       final pin = Pin('1234');
-      when(sharedPreferences.setBool(boolKey, true)).thenAnswer((_) async => true);
-      when(sharedPreferences.setString(pinKey.value, pin.value)).thenAnswer((_) async => true);
+      when(sharedPreferences.setBool(boolKey, true))
+          .thenAnswer((_) async => true);
+      when(sharedPreferences.setString(pinKey.value, pin.value))
+          .thenAnswer((_) async => true);
       repository.setPin(pin, forUser: user);
       verify(sharedPreferences.setBool(boolKey, true));
       verify(sharedPreferences.setString(pinKey.value, pin.value));

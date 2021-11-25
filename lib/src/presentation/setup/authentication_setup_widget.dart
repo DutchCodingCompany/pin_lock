@@ -49,8 +49,10 @@ class AuthenticationSetupWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<SetuplocalauthCubit>(
-      create: (context) => SetuplocalauthCubit(authenticator)..checkInitialState(),
-      child: BlocBuilder<SetuplocalauthCubit, SetupStage>(builder: (context, state) {
+      create: (context) =>
+          SetuplocalauthCubit(authenticator)..checkInitialState(),
+      child: BlocBuilder<SetuplocalauthCubit, SetupStage>(
+          builder: (context, state) {
         if (state is Base) {
           return overviewBuilder(
             OverviewConfiguration(
@@ -61,8 +63,10 @@ class AuthenticationSetupWidget extends StatelessWidget {
                   bloc(context).startDisablingPincode();
                 }
               },
-              onToggleBiometric: () => bloc(context).toggleBiometricAuthentication(),
-              onPasswordChangeRequested: () => bloc(context).startChangingPincode(),
+              onToggleBiometric: () =>
+                  bloc(context).toggleBiometricAuthentication(),
+              onPasswordChangeRequested: () =>
+                  bloc(context).startChangingPincode(),
               isLoading: state.isLoading,
               isBiometricAuthAvailable: state.isBiometricAuthAvailable,
               isBiometricAuthEnabled: state.isBiometricAuthEnabled,
@@ -123,7 +127,8 @@ class AuthenticationSetupWidget extends StatelessWidget {
                 pinLength: authenticator.pinLength,
                 onInput: (text) => bloc(context).enterPinToChange(text),
                 value: state.currentPin,
-                hasError: state.error != null && state.error != LocalAuthFailure.pinNotMatching,
+                hasError: state.error != null &&
+                    state.error != LocalAuthFailure.pinNotMatching,
               ),
               newPinInputWidget: PinInputWidget(
                 value: state.newPin,
@@ -151,5 +156,6 @@ class AuthenticationSetupWidget extends StatelessWidget {
     );
   }
 
-  SetuplocalauthCubit bloc(BuildContext context) => BlocProvider.of<SetuplocalauthCubit>(context);
+  SetuplocalauthCubit bloc(BuildContext context) =>
+      BlocProvider.of<SetuplocalauthCubit>(context);
 }

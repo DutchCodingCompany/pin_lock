@@ -63,7 +63,8 @@ class _MyAppState extends State<MyApp> {
             'Your data is locked for privacy reasons. You need to unlock the app to access your data.',
 
         /// Provide a widget that represents a single pin input field
-        inputNodeBuilder: (index, state) => _InputField(state: state, index: index),
+        inputNodeBuilder: (index, state) =>
+            _InputField(state: state, index: index),
 
         /// Provide a widget that describes what you want your lock screen to look like,
         /// given the state of the lock screen ([LockScreenConfiguration])
@@ -94,9 +95,12 @@ class _InputField extends StatelessWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    final borderColor = state == InputFieldState.error ? Theme.of(context).errorColor : Theme.of(context).primaryColor;
+    final borderColor = state == InputFieldState.error
+        ? Theme.of(context).errorColor
+        : Theme.of(context).primaryColor;
     double borderWidth = 1;
-    if (state == InputFieldState.focused || state == InputFieldState.filledAndFocused) {
+    if (state == InputFieldState.focused ||
+        state == InputFieldState.filledAndFocused) {
       borderWidth = 4;
     }
     return Container(
@@ -110,7 +114,8 @@ class _InputField extends StatelessWidget {
           width: borderWidth,
         ),
       ),
-      child: state == InputFieldState.filled || state == InputFieldState.filledAndFocused
+      child: state == InputFieldState.filled ||
+              state == InputFieldState.filledAndFocused
           ? Center(
               child: Container(
                 width: 6,
@@ -142,7 +147,8 @@ class _Home extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => _SetupAuthWidget()));
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => _SetupAuthWidget()));
             },
             child: Text('Configure local authentication'),
           ),
@@ -214,7 +220,8 @@ class _SetupAuthWidget extends StatelessWidget {
 
         /// Pin input widget can be the same as on the lock screen, or you can provide a custom UI
         /// that you want to use when setting it up
-        pinInputBuilder: (index, state) => _InputField(state: state, index: index),
+        pinInputBuilder: (index, state) =>
+            _InputField(state: state, index: index),
 
         /// Overview refers to the first thing your user sees when getting to settings, before they have made
         /// any action, as well as after they made an action (such as changing pincode)
@@ -243,14 +250,17 @@ class _SetupAuthWidget extends StatelessWidget {
                       ),
 
                       /// In case of something going wrong, [OverviewConfiguration] provides an [error] property
-                      if (config.error != null) Text(config.error!.toString(), style: TextStyle(color: Colors.red)),
+                      if (config.error != null)
+                        Text(config.error!.toString(),
+                            style: TextStyle(color: Colors.red)),
 
                       /// If biometric authentication is available, provide an option to toggle it on or off
                       if (config.isBiometricAuthAvailable == true)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Use fingerprint or face id to unlock the app'),
+                            const Text(
+                                'Use fingerprint or face id to unlock the app'),
                             Switch(
                               value: config.isBiometricAuthEnabled!,
                               onChanged: (_) => config.onToggleBiometric(),
@@ -291,7 +301,8 @@ class _SetupAuthWidget extends StatelessWidget {
 
               /// [configuration.error] provides details if something goes wrong (e.g., pins don't match)
               if (configuration.error != null)
-                Text(configuration.error.toString(), style: TextStyle(color: Colors.red)),
+                Text(configuration.error.toString(),
+                    style: TextStyle(color: Colors.red)),
 
               /// [configuration.canSubmitChange] can optionaly be used to hide or disable submit button
               /// It is also possible to listen for this property and programatically trigger [config.onSubmitChange],
@@ -324,7 +335,9 @@ class _SetupAuthWidget extends StatelessWidget {
                   style: TextStyle(color: Colors.red),
                 ),
               if (configuration.canSubmitChange)
-                OutlinedButton(onPressed: configuration.onChangeSubmitted, child: Text('Save'))
+                OutlinedButton(
+                    onPressed: configuration.onChangeSubmitted,
+                    child: Text('Save'))
             ],
           ),
         ),
@@ -342,7 +355,8 @@ class _SetupAuthWidget extends StatelessWidget {
             configuration.newPinInputWidget,
             const Text('Confirm new pin'),
             configuration.confirmNewPinInputWidget,
-            if (configuration.error != null && !_isCurrentPinIssue(configuration.error))
+            if (configuration.error != null &&
+                !_isCurrentPinIssue(configuration.error))
               Text(
                 configuration.error!.toString(),
                 style: const TextStyle(color: Colors.red),
@@ -359,6 +373,7 @@ class _SetupAuthWidget extends StatelessWidget {
   }
 
   bool _isCurrentPinIssue(LocalAuthFailure? error) {
-    return error == LocalAuthFailure.wrongPin || error == LocalAuthFailure.tooManyAttempts;
+    return error == LocalAuthFailure.wrongPin ||
+        error == LocalAuthFailure.tooManyAttempts;
   }
 }

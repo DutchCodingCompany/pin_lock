@@ -13,7 +13,8 @@ import 'package:pin_lock/src/repositories/pin_repository.dart';
 
 import 'authenticator_test.mocks.dart';
 
-@GenerateMocks([LocalAuthenticationRepository, LocalAuthentication, LockController])
+@GenerateMocks(
+    [LocalAuthenticationRepository, LocalAuthentication, LockController])
 void main() {
   late MockLocalAuthenticationRepository repository;
   late MockLocalAuthentication localAuth;
@@ -26,8 +27,10 @@ void main() {
     repository = MockLocalAuthenticationRepository();
     lockController = MockLockController();
     when(lockController.unlock()).thenReturn(null);
-    when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((realInvocation) async => true);
-    when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((realInvocation) async => true);
+    when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+        .thenAnswer((realInvocation) async => true);
+    when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+        .thenAnswer((realInvocation) async => true);
     authenticator = AuthenticatorImpl(
       repository,
       localAuth,
@@ -42,20 +45,23 @@ void main() {
 
   group('isPinAuthenticationEnabled()', () {
     test('returns true if it is set in the repository', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
 
       final response = await authenticator.isPinAuthenticationEnabled();
       expect(response, true);
     });
 
     test('returns false if set in the repository', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(false));
 
       final response = await authenticator.isPinAuthenticationEnabled();
       expect(response, false);
     });
     test('returns false if not set in the repository', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(null));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(null));
 
       final response = await authenticator.isPinAuthenticationEnabled();
       expect(response, false);
@@ -65,105 +71,144 @@ void main() {
   group('shouldAttemptBiometricAuthentication', () {
     test('returns [Available:true] when available and enabled', () async {
       when(localAuth.isDeviceSupported()).thenAnswer((_) async => true);
-      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
 
-      final response = await authenticator.getBiometricAuthenticationAvailability();
+      final response =
+          await authenticator.getBiometricAuthenticationAvailability();
       expect(response, const Available(isEnabled: true));
     });
 
-    test('returns [Anavailable:false] when available and not enabled', () async {
+    test('returns [Anavailable:false] when available and not enabled',
+        () async {
       when(localAuth.isDeviceSupported()).thenAnswer((_) async => true);
-      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
+      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(false));
 
-      final response = await authenticator.getBiometricAuthenticationAvailability();
+      final response =
+          await authenticator.getBiometricAuthenticationAvailability();
       expect(response, const Available(isEnabled: false));
     });
     test('returns [Unavailable] if device is not supported', () async {
       when(localAuth.isDeviceSupported()).thenAnswer((_) async => false);
-      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(null));
+      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(null));
 
-      final response = await authenticator.getBiometricAuthenticationAvailability();
-      expect(response, const Unavailable(reason: LocalAuthFailure.notAvailable));
+      final response =
+          await authenticator.getBiometricAuthenticationAvailability();
+      expect(
+          response, const Unavailable(reason: LocalAuthFailure.notAvailable));
     });
   });
 
   group('enablePinAuthentication', () {
-    test('fails with [LocalAuthFailure.alreadySetUp] if there is an existing pin', () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) => Future.value(PinHash(Pin('1').value)));
+    test(
+        'fails with [LocalAuthFailure.alreadySetUp] if there is an existing pin',
+        () async {
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) => Future.value(PinHash(Pin('1').value)));
       final result = await authenticator.enablePinAuthentication(
         pin: Pin('1'),
         confirmationPin: Pin('2'),
       );
       expect(result, const Left(LocalAuthFailure.alreadySetUp));
     });
-    test('returns [LocalAuthFailure.pinNotMatching] if confirmation pin does not match the new pin', () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) => Future.value(null));
+    test(
+        'returns [LocalAuthFailure.pinNotMatching] if confirmation pin does not match the new pin',
+        () async {
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) => Future.value(null));
       final result = await authenticator.enablePinAuthentication(
         pin: Pin('1'),
         confirmationPin: Pin('2'),
       );
       expect(result, const Left(LocalAuthFailure.pinNotMatching));
     });
-    test('fails with [LocalAuthFailure.unknown] if the repository throws an error', () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) => Future.value(null));
-      when(repository.enablePinAuthentication(pin: Pin('1'), userId: UserId('1'))).thenThrow(Exception());
+    test(
+        'fails with [LocalAuthFailure.unknown] if the repository throws an error',
+        () async {
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) => Future.value(null));
+      when(repository.enablePinAuthentication(
+              pin: Pin('1'), userId: UserId('1')))
+          .thenThrow(Exception());
       final result = await authenticator.enablePinAuthentication(
         pin: Pin('1'),
         confirmationPin: Pin('1'),
       );
-      verify(repository.enablePinAuthentication(pin: Pin('1'), userId: UserId('1')));
+      verify(repository.enablePinAuthentication(
+          pin: Pin('1'), userId: UserId('1')));
       expect(result, const Left(LocalAuthFailure.unknown));
     });
 
     test(
         'calls enableLocalAuthentication() on repository with appropriate parameters if all data is correct and returns [unit]',
         () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) => Future.value(null));
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) => Future.value(null));
       final result = await authenticator.enablePinAuthentication(
         pin: Pin('1'),
         confirmationPin: Pin('1'),
       );
-      verify(repository.enablePinAuthentication(pin: Pin('1'), userId: UserId('1')));
+      verify(repository.enablePinAuthentication(
+          pin: Pin('1'), userId: UserId('1')));
       expect(result, const Right(unit));
     });
   });
 
   group('disablePinAuthentication', () {
-    test('auto-succeeds (returns unit) if pin authentication is not enabled', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
+    test('auto-succeeds (returns unit) if pin authentication is not enabled',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(false));
 
-      final result = await authenticator.disableAuthenticationWithPin(pin: Pin('2'));
+      final result =
+          await authenticator.disableAuthenticationWithPin(pin: Pin('2'));
       expect(result, const Right(unit));
     });
 
-    test('fails with [LocalAuthFailure.wrongPin] if wrong pin is provided', () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => Future.value(PinHash(Pin('1').value)));
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+    test('fails with [LocalAuthFailure.wrongPin] if wrong pin is provided',
+        () async {
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => Future.value(PinHash(Pin('1').value)));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
 
-      final result = await authenticator.disableAuthenticationWithPin(pin: Pin('2'));
+      final result =
+          await authenticator.disableAuthenticationWithPin(pin: Pin('2'));
       expect(result, const Left(LocalAuthFailure.wrongPin));
     });
 
     test('fails with [.unknown] if repository throws', () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => Future.value(PinHash(Pin('1').value)));
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
-      when(repository.disableLocalAuthentication(userId: UserId('1'))).thenThrow(Exception());
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => Future.value(PinHash(Pin('1').value)));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
+      when(repository.disableLocalAuthentication(userId: UserId('1')))
+          .thenThrow(Exception());
 
-      final result = await authenticator.disableAuthenticationWithPin(pin: Pin('1'));
+      final result =
+          await authenticator.disableAuthenticationWithPin(pin: Pin('1'));
       expect(result, const Left(LocalAuthFailure.unknown));
     });
 
     test('succeeds and returns unit if all parameters are correct', () async {
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => Future.value(PinHash(Pin('1').value)));
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => Future.value(PinHash(Pin('1').value)));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
 
-      final result = await authenticator.disableAuthenticationWithPin(pin: Pin('1'));
+      final result =
+          await authenticator.disableAuthenticationWithPin(pin: Pin('1'));
       expect(result, const Right(unit));
     });
   });
   group('enableBiometricAuthentication', () {
-    test('fails with [LocalAuthFailure.notAvailable if biometrics cannot be checked', () async {
-      when(localAuth.getAvailableBiometrics()).thenAnswer((_) => Future.value([]));
+    test(
+        'fails with [LocalAuthFailure.notAvailable if biometrics cannot be checked',
+        () async {
+      when(localAuth.getAvailableBiometrics())
+          .thenAnswer((_) => Future.value([]));
       when(localAuth.canCheckBiometrics).thenAnswer((_) => Future.value(false));
 
       final result = await authenticator.enableBiometricAuthentication();
@@ -171,8 +216,11 @@ void main() {
       expect(result, const Left(LocalAuthFailure.notAvailable));
     });
 
-    test('fails with [LocalAuthFailure.notAvailable if no available biometric methods', () async {
-      when(localAuth.getAvailableBiometrics()).thenAnswer((_) => Future.value([]));
+    test(
+        'fails with [LocalAuthFailure.notAvailable if no available biometric methods',
+        () async {
+      when(localAuth.getAvailableBiometrics())
+          .thenAnswer((_) => Future.value([]));
       when(localAuth.canCheckBiometrics).thenAnswer((_) => Future.value(true));
 
       final result = await authenticator.enableBiometricAuthentication();
@@ -180,18 +228,25 @@ void main() {
       expect(result, const Left(LocalAuthFailure.notAvailable));
     });
 
-    test('fails with [LocalAuthFailure.unknown] if the repository throws an error', () async {
-      when(localAuth.getAvailableBiometrics()).thenAnswer((_) => Future.value([BiometricType.face]));
+    test(
+        'fails with [LocalAuthFailure.unknown] if the repository throws an error',
+        () async {
+      when(localAuth.getAvailableBiometrics())
+          .thenAnswer((_) => Future.value([BiometricType.face]));
       when(localAuth.canCheckBiometrics).thenAnswer((_) => Future.value(true));
-      when(repository.enableBiometricAuthentication(userId: UserId('1'))).thenThrow(Exception());
+      when(repository.enableBiometricAuthentication(userId: UserId('1')))
+          .thenThrow(Exception());
 
       final result = await authenticator.enableBiometricAuthentication();
       verify(repository.enableBiometricAuthentication(userId: UserId('1')));
       expect(result, const Left(LocalAuthFailure.unknown));
     });
 
-    test('calls enableBiometricAuthentication() in repository with correct UserId and returns [unit]', () async {
-      when(localAuth.getAvailableBiometrics()).thenAnswer((_) => Future.value([BiometricType.face]));
+    test(
+        'calls enableBiometricAuthentication() in repository with correct UserId and returns [unit]',
+        () async {
+      when(localAuth.getAvailableBiometrics())
+          .thenAnswer((_) => Future.value([BiometricType.face]));
       when(localAuth.canCheckBiometrics).thenAnswer((_) => Future.value(true));
 
       final result = await authenticator.enableBiometricAuthentication();
@@ -201,17 +256,23 @@ void main() {
   });
 
   group('disableBiometricAuthentication', () {
-    test('auto-succeeds (returns unit) if biometric authentication is not enabled', () async {
-      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
+    test(
+        'auto-succeeds (returns unit) if biometric authentication is not enabled',
+        () async {
+      when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(false));
 
-      final result = await authenticator.disableBiometricAuthentication(pin: Pin('2'));
+      final result =
+          await authenticator.disableBiometricAuthentication(pin: Pin('2'));
       expect(result, const Right(unit));
     });
 
     group('with pinRequired', () {
       test('incorrect pin: fails with [.wrongPin]', () async {
-        when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
-        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
+        when(repository.getPin(forUser: UserId('1')))
+            .thenAnswer((_) async => PinHash(Pin('1').value));
+        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+            .thenAnswer((_) async => true);
 
         final result = await authenticator.disableBiometricAuthentication(
           requirePin: true,
@@ -219,11 +280,15 @@ void main() {
         );
         expect(result, const Left(LocalAuthFailure.wrongPin));
       });
-      test('correct pin: fails with [.unknown] if the repository throws', () async {
-        when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
-        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
+      test('correct pin: fails with [.unknown] if the repository throws',
+          () async {
+        when(repository.getPin(forUser: UserId('1')))
+            .thenAnswer((_) async => PinHash(Pin('1').value));
+        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+            .thenAnswer((_) async => true);
 
-        when(repository.disableBiometricAuthentication(userId: UserId('1'))).thenThrow(Exception());
+        when(repository.disableBiometricAuthentication(userId: UserId('1')))
+            .thenThrow(Exception());
 
         final result = await authenticator.disableBiometricAuthentication(
           requirePin: true,
@@ -232,9 +297,13 @@ void main() {
         expect(result, const Left(LocalAuthFailure.unknown));
       });
 
-      test('correct pin: calls disableBiometricAuthentication() in repository and returns unit', () async {
-        when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
-        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
+      test(
+          'correct pin: calls disableBiometricAuthentication() in repository and returns unit',
+          () async {
+        when(repository.getPin(forUser: UserId('1')))
+            .thenAnswer((_) async => PinHash(Pin('1').value));
+        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+            .thenAnswer((_) async => true);
 
         final result = await authenticator.disableBiometricAuthentication(
           requirePin: true,
@@ -248,15 +317,20 @@ void main() {
 
     group('without pinRequired', () {
       test('fails with [.unknown] if the repository throws', () async {
-        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
-        when(repository.disableBiometricAuthentication(userId: UserId('1'))).thenThrow(Exception());
+        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+            .thenAnswer((_) => Future.value(true));
+        when(repository.disableBiometricAuthentication(userId: UserId('1')))
+            .thenThrow(Exception());
 
         final result = await authenticator.disableBiometricAuthentication();
         expect(result, const Left(LocalAuthFailure.unknown));
       });
 
-      test('calls disableBiometricAuthentication() in repository and returns unit', () async {
-        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+      test(
+          'calls disableBiometricAuthentication() in repository and returns unit',
+          () async {
+        when(repository.isBiometricAuthenticationEnabled(userId: UserId('1')))
+            .thenAnswer((_) => Future.value(true));
 
         final result = await authenticator.disableBiometricAuthentication();
         verify(repository.disableBiometricAuthentication(userId: UserId('1')));
@@ -266,8 +340,10 @@ void main() {
   });
 
   group('changePinCode', () {
-    test('fails with [.unknown] if pin authentication is not enabled', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
+    test('fails with [.unknown] if pin authentication is not enabled',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(false));
 
       final result = await authenticator.changePinCode(
         oldPin: Pin('1'),
@@ -278,9 +354,12 @@ void main() {
       expect(result, const Left(LocalAuthFailure.unknown));
     });
     test('fails with [.wrongPin] if oldPin is incorrect', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
-      when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer((_) async => const []);
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('2').value));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) async => true);
+      when(repository.getListOfFailedAttempts(userId: UserId('1')))
+          .thenAnswer((_) async => const []);
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('2').value));
 
       final result = await authenticator.changePinCode(
         oldPin: Pin('1'),
@@ -291,7 +370,8 @@ void main() {
       expect(result, const Left(LocalAuthFailure.wrongPin));
     });
     test('fails with [.tooManyAttempts] if maxRetries is exceeded', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) async => true);
       when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer(
         (_) async => List.generate(10, (index) => DateTime.now()),
       );
@@ -305,10 +385,15 @@ void main() {
       expect(result, const Left(LocalAuthFailure.tooManyAttempts));
     });
 
-    test('fails with [.pinNotMatching] if [newPin] is different from [newPinConfirmation]', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
-      when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer((_) async => const []);
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
+    test(
+        'fails with [.pinNotMatching] if [newPin] is different from [newPinConfirmation]',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) async => true);
+      when(repository.getListOfFailedAttempts(userId: UserId('1')))
+          .thenAnswer((_) async => const []);
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('1').value));
 
       final result = await authenticator.changePinCode(
         oldPin: Pin('1'),
@@ -319,11 +404,16 @@ void main() {
       expect(result, const Left(LocalAuthFailure.pinNotMatching));
     });
 
-    test('fails with [.unknown] if repository throws while writing the new pin', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
-      when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer((_) async => const []);
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
-      when(repository.setPin(Pin('2'), forUser: UserId('1'))).thenThrow(Exception());
+    test('fails with [.unknown] if repository throws while writing the new pin',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) async => true);
+      when(repository.getListOfFailedAttempts(userId: UserId('1')))
+          .thenAnswer((_) async => const []);
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('1').value));
+      when(repository.setPin(Pin('2'), forUser: UserId('1')))
+          .thenThrow(Exception());
 
       final result = await authenticator.changePinCode(
         oldPin: Pin('1'),
@@ -334,10 +424,15 @@ void main() {
       expect(result, const Left(LocalAuthFailure.unknown));
     });
 
-    test('writes new pin to the repository and returns unit if all parameters are correct', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) async => true);
-      when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer((_) async => const []);
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
+    test(
+        'writes new pin to the repository and returns unit if all parameters are correct',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) async => true);
+      when(repository.getListOfFailedAttempts(userId: UserId('1')))
+          .thenAnswer((_) async => const []);
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('1').value));
 
       final result = await authenticator.changePinCode(
         oldPin: Pin('1'),
@@ -352,14 +447,17 @@ void main() {
 
   group('unlockWithPin', () {
     test('auto-succeeds if pin authentication is not enabled', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(false));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(false));
       final result = await authenticator.unlockWithPin(pin: Pin('1'));
       verify(lockController.unlock());
       expect(result, const Right(unit));
     });
 
-    test('fails with [.tooManyAttempts] if maxRetries has been exceeded', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+    test('fails with [.tooManyAttempts] if maxRetries has been exceeded',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
       when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer(
         (_) async => List.generate(6, (index) => DateTime.now()),
       );
@@ -368,22 +466,28 @@ void main() {
     });
 
     test('fails with [.wrongPin] if a wrong pin was provided', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
       when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer(
         (_) async => List.generate(2, (index) => DateTime.now()),
       );
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('2').value));
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('2').value));
 
       final result = await authenticator.unlockWithPin(pin: Pin('1'));
       expect(result, const Left(LocalAuthFailure.wrongPin));
     });
 
-    test('increments failed attempts and fails with [.wrongPin] if a wrong pin was provided', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+    test(
+        'increments failed attempts and fails with [.wrongPin] if a wrong pin was provided',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
       when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer(
         (_) async => List.generate(2, (index) => DateTime.now()),
       );
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('2').value));
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('2').value));
 
       final result = await authenticator.unlockWithPin(pin: Pin('1'));
 
@@ -391,24 +495,32 @@ void main() {
       expect(result, const Left(LocalAuthFailure.wrongPin));
     });
 
-    test('succeeds if a correct pin was provided and unlocks the LockController', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+    test(
+        'succeeds if a correct pin was provided and unlocks the LockController',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
       when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer(
         (_) async => List.generate(2, (index) => DateTime.now()),
       );
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('1').value));
 
       final result = await authenticator.unlockWithPin(pin: Pin('1'));
       verify(lockController.unlock());
       expect(result, const Right(unit));
     });
 
-    test('resets failed attempt count and succeeds if a correct pin was provided', () async {
-      when(repository.isPinAuthenticationEnabled(userId: UserId('1'))).thenAnswer((_) => Future.value(true));
+    test(
+        'resets failed attempt count and succeeds if a correct pin was provided',
+        () async {
+      when(repository.isPinAuthenticationEnabled(userId: UserId('1')))
+          .thenAnswer((_) => Future.value(true));
       when(repository.getListOfFailedAttempts(userId: UserId('1'))).thenAnswer(
         (_) async => List.generate(2, (index) => DateTime.now()),
       );
-      when(repository.getPin(forUser: UserId('1'))).thenAnswer((_) async => PinHash(Pin('1').value));
+      when(repository.getPin(forUser: UserId('1')))
+          .thenAnswer((_) async => PinHash(Pin('1').value));
 
       final result = await authenticator.unlockWithPin(pin: Pin('1'));
       verify(repository.resetFailedAttempts(ofUser: UserId('1')));

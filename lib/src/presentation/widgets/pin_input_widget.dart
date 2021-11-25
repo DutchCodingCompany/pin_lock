@@ -60,7 +60,8 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                 widget.pinLength,
                 (index) {
                   if (widget.hasError) {
-                    return widget.inputNodeBuilder(index, InputFieldState.error);
+                    return widget.inputNodeBuilder(
+                        index, InputFieldState.error);
                   }
                   return widget.inputNodeBuilder(index, _determineState(index));
                 },
@@ -76,7 +77,8 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                   maxLength: widget.pinLength,
                   onChanged: (text) async {
                     widget.onInput(text);
-                    if (text.length == widget.pinLength && focusNode.hasFocus == true) {
+                    if (text.length == widget.pinLength &&
+                        focusNode.hasFocus == true) {
                       widget.nextFocusNode?.requestFocus();
                     }
                   },

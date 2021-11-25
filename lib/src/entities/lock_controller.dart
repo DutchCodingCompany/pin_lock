@@ -22,7 +22,8 @@ class LockController {
 
   final StreamController<LockState> _streamController;
 
-  LockController({this.onUnlockCallback, this.onLockCallback}) : _streamController = StreamController.broadcast() {
+  LockController({this.onUnlockCallback, this.onLockCallback})
+      : _streamController = StreamController.broadcast() {
     state = _streamController.stream;
   }
 

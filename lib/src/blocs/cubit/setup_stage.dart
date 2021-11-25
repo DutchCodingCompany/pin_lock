@@ -31,7 +31,13 @@ class Base extends SetupStage {
   bool canGoFurther(int pinLength) => true;
 
   @override
-  List<Object?> get props => [isLoading, isPinAuthEnabled, isBiometricAuthAvailable, isBiometricAuthEnabled, error];
+  List<Object?> get props => [
+        isLoading,
+        isPinAuthEnabled,
+        isBiometricAuthAvailable,
+        isBiometricAuthEnabled,
+        error
+      ];
 
   Base copyWith({
     bool? isLoading,
@@ -43,8 +49,10 @@ class Base extends SetupStage {
       Base(
         isLoading: isLoading ?? this.isLoading,
         isPinAuthEnabled: isPinAuthEnabled ?? this.isPinAuthEnabled,
-        isBiometricAuthEnabled: isBiometricAuthEnabled ?? this.isBiometricAuthEnabled,
-        isBiometricAuthAvailable: isBiometricAuthAvailable ?? this.isBiometricAuthAvailable,
+        isBiometricAuthEnabled:
+            isBiometricAuthEnabled ?? this.isBiometricAuthEnabled,
+        isBiometricAuthAvailable:
+            isBiometricAuthAvailable ?? this.isBiometricAuthAvailable,
         error: error,
       );
 }
@@ -62,7 +70,8 @@ class Enabling extends SetupStage {
   });
 
   @override
-  bool canGoFurther(int pinLength) => pin?.length == pinLength && confirmationPin?.length == pinLength;
+  bool canGoFurther(int pinLength) =>
+      pin?.length == pinLength && confirmationPin?.length == pinLength;
 
   @override
   List<Object?> get props => [pin, confirmationPin, error];
@@ -93,7 +102,8 @@ class Disabling extends SetupStage {
   @override
   List<Object?> get props => [pin, error];
 
-  Disabling copyWith({int? pinLength, String? pin, LocalAuthFailure? error}) => Disabling(
+  Disabling copyWith({int? pinLength, String? pin, LocalAuthFailure? error}) =>
+      Disabling(
         pin: pin ?? this.pin,
         error: error,
       );
@@ -115,7 +125,9 @@ class ChangingPasscode extends SetupStage {
 
   @override
   bool canGoFurther(int pinLength) =>
-      currentPin.length == pinLength && newPin.length == pinLength && confirmationPin.length == pinLength;
+      currentPin.length == pinLength &&
+      newPin.length == pinLength &&
+      confirmationPin.length == pinLength;
 
   @override
   List<Object?> get props => [currentPin, confirmationPin, newPin, error];

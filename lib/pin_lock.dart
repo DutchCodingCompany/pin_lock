@@ -57,8 +57,10 @@ class PinLock {
         userId,
       );
 
-  static Future<Authenticator> baseAuthenticator(String userId) async => PinLock.authenticatorInstance(
-        repository: LocalAuthenticationRepositoryImpl(await SharedPreferences.getInstance()),
+  static Future<Authenticator> baseAuthenticator(String userId) async =>
+      PinLock.authenticatorInstance(
+        repository: LocalAuthenticationRepositoryImpl(
+            await SharedPreferences.getInstance()),
         biometricAuthenticator: LocalAuthentication(),
         lockController: LockController(),
         userId: UserId(userId),

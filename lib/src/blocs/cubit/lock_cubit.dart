@@ -6,7 +6,8 @@ import 'package:pin_lock/src/entities/value_objects.dart';
 
 class LockCubit extends Cubit<LockScreenState> {
   final Authenticator _authenticator;
-  LockCubit(this._authenticator) : super(const LockScreenState(isLoading: true));
+  LockCubit(this._authenticator)
+      : super(const LockScreenState(isLoading: true));
 
   Future<void> enterPin(String pin) async {
     emit(LockScreenState(pin: pin));
@@ -20,8 +21,10 @@ class LockCubit extends Cubit<LockScreenState> {
   }
 
   Future<void> unlockWithBiometrics(String userFacingExplanation) async {
-    final result = await _authenticator.unlockWithBiometrics(userFacingExplanation: userFacingExplanation);
-    result.fold((l) => emit(LockScreenState(pin: state.pin, error: l)), (r) => null);
+    final result = await _authenticator.unlockWithBiometrics(
+        userFacingExplanation: userFacingExplanation);
+    result.fold(
+        (l) => emit(LockScreenState(pin: state.pin, error: l)), (r) => null);
   }
 }
 

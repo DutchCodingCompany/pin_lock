@@ -7,7 +7,8 @@ import 'package:equatable/equatable.dart';
 class HashedValue extends Equatable {
   final String value;
 
-  HashedValue(String text) : value = sha256.convert(utf8.encode(text)).toString();
+  HashedValue(String text)
+      : value = sha256.convert(utf8.encode(text)).toString();
 
   @override
   List<Object?> get props => [value];
