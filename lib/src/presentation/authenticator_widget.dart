@@ -4,12 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_lock/pin_lock.dart';
 import 'package:pin_lock/src/blocs/cubit/lock_cubit.dart';
-import 'package:pin_lock/src/entities/authenticator.dart';
-import 'package:pin_lock/src/entities/biometric_method.dart';
-import 'package:pin_lock/src/entities/lock_state.dart';
-import 'package:pin_lock/src/presentation/lock_screen/builders.dart';
-import 'package:pin_lock/src/presentation/lock_screen/configurations.dart';
-import 'package:pin_lock/src/presentation/widgets/pin_input_widget.dart';
 
 /// Root widget of the part of the app that needs to be protected by the pin.
 /// Takes the app's [Authenticator] as a parameter and makes sure that a lock
@@ -63,7 +57,7 @@ class AuthenticatorWidget extends StatefulWidget {
     required this.userFacingBiometricAuthenticationMessage,
     required this.inputNodeBuilder,
     this.splashScreenBuilder,
-    this.splashScreenDuration = const Duration(),
+    this.splashScreenDuration = Duration.zero,
     this.hideAppContent = true,
     this.iosImageAsset,
   }) : super(key: key);
@@ -80,8 +74,10 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   @override
   void initState() {
     super.initState();
-    PinLock.setHideAppContent(widget.hideAppContent,
-        iosAssetImage: widget.iosImageAsset);
+    PinLock.setHideAppContent(
+      preference: widget.hideAppContent,
+      iosAssetImage: widget.iosImageAsset,
+    );
     lockSubscription = widget.authenticator.lockState.listen((event) {
       if (event is Unlocked) {
         overlayEntry?.remove();

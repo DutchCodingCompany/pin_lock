@@ -1,9 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_lock/pin_lock.dart';
-import 'package:pin_lock/src/entities/biometric_method.dart';
-import 'package:pin_lock/src/entities/failure.dart';
 
 /// Provides information needed to draw the Lock Screen, such as the pin input widget
 /// that needs to be placed on the LockScreen and available biometric methods that

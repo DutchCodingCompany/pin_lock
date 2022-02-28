@@ -14,7 +14,8 @@ import 'package:pin_lock/src/repositories/pin_repository.dart';
 import 'authenticator_test.mocks.dart';
 
 @GenerateMocks(
-    [LocalAuthenticationRepository, LocalAuthentication, LockController])
+  [LocalAuthenticationRepository, LocalAuthentication, LockController],
+)
 void main() {
   late MockLocalAuthenticationRepository repository;
   late MockLocalAuthentication localAuth;
@@ -97,7 +98,9 @@ void main() {
       final response =
           await authenticator.getBiometricAuthenticationAvailability();
       expect(
-          response, const Unavailable(reason: LocalAuthFailure.notAvailable));
+        response,
+        const Unavailable(reason: LocalAuthFailure.notAvailable),
+      );
     });
   });
 
@@ -129,15 +132,22 @@ void main() {
         () async {
       when(repository.getPin(forUser: UserId('1')))
           .thenAnswer((_) => Future.value(null));
-      when(repository.enablePinAuthentication(
-              pin: Pin('1'), userId: UserId('1')))
-          .thenThrow(Exception());
+      when(
+        repository.enablePinAuthentication(
+          pin: Pin('1'),
+          userId: UserId('1'),
+        ),
+      ).thenThrow(Exception());
       final result = await authenticator.enablePinAuthentication(
         pin: Pin('1'),
         confirmationPin: Pin('1'),
       );
-      verify(repository.enablePinAuthentication(
-          pin: Pin('1'), userId: UserId('1')));
+      verify(
+        repository.enablePinAuthentication(
+          pin: Pin('1'),
+          userId: UserId('1'),
+        ),
+      );
       expect(result, const Left(LocalAuthFailure.unknown));
     });
 
@@ -150,8 +160,12 @@ void main() {
         pin: Pin('1'),
         confirmationPin: Pin('1'),
       );
-      verify(repository.enablePinAuthentication(
-          pin: Pin('1'), userId: UserId('1')));
+      verify(
+        repository.enablePinAuthentication(
+          pin: Pin('1'),
+          userId: UserId('1'),
+        ),
+      );
       expect(result, const Right(unit));
     });
   });

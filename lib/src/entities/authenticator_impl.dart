@@ -73,7 +73,8 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
           if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch >
               lockAfterDuration.inMilliseconds) {
             _lockController.lock(
-                availableMethods: await getAvailableBiometricMethods());
+              availableMethods: await getAvailableBiometricMethods(),
+            );
           }
         }
         break;
@@ -127,8 +128,10 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }
 
   @override
-  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin(
-      {required Pin pin, bool force = false}) async {
+  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({
+    required Pin pin,
+    bool force = false,
+  }) async {
     if (!force) {
       final isAuthenticationEnabled = await isPinAuthenticationEnabled();
       if (!isAuthenticationEnabled) {
@@ -233,8 +236,9 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   /// -- Usage --
 
   @override
-  Future<Either<LocalAuthFailure, Unit>> unlockWithPin(
-      {required Pin pin}) async {
+  Future<Either<LocalAuthFailure, Unit>> unlockWithPin({
+    required Pin pin,
+  }) async {
     final isEnabled = await isPinAuthenticationEnabled();
     if (!isEnabled) {
       _lockController.unlock();
@@ -256,8 +260,9 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }
 
   @override
-  Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics(
-      {required String userFacingExplanation}) async {
+  Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics({
+    required String userFacingExplanation,
+  }) async {
     final biometricAvailability =
         await getBiometricAuthenticationAvailability();
     if (biometricAvailability is Available) {

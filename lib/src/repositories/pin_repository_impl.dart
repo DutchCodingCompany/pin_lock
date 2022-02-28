@@ -26,8 +26,9 @@ class LocalAuthenticationRepositoryImpl
   }
 
   @override
-  Future<bool?> isBiometricAuthenticationEnabled(
-      {required UserId userId}) async {
+  Future<bool?> isBiometricAuthenticationEnabled({
+    required UserId userId,
+  }) async {
     try {
       return sp.getBool(_keyBoolBiometricsEnabled(userId).value);
     } catch (e) {
@@ -36,8 +37,10 @@ class LocalAuthenticationRepositoryImpl
   }
 
   @override
-  Future<void> enablePinAuthentication(
-      {required Pin pin, required UserId userId}) async {
+  Future<void> enablePinAuthentication({
+    required Pin pin,
+    required UserId userId,
+  }) async {
     sp.setBool(_keyBoolPinEnabled(userId).value, true);
     sp.setString(_keyStringPin(userId).value, pin.value);
   }
@@ -73,8 +76,9 @@ class LocalAuthenticationRepositoryImpl
   }
 
   @override
-  Future<List<DateTime>> getListOfFailedAttempts(
-      {required UserId userId}) async {
+  Future<List<DateTime>> getListOfFailedAttempts({
+    required UserId userId,
+  }) async {
     final list = sp.getStringList(_keyListFailedAttempts(userId).value);
     if (list == null) {
       return <DateTime>[];
@@ -83,8 +87,10 @@ class LocalAuthenticationRepositoryImpl
   }
 
   @override
-  Future<void> addFailedAttempt(DateTime timestamp,
-      {required UserId forUser}) async {
+  Future<void> addFailedAttempt(
+    DateTime timestamp, {
+    required UserId forUser,
+  }) async {
     final key = _keyListFailedAttempts(forUser).value;
     final list = sp.getStringList(key);
     if (list == null) {

@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_lock/pin_lock.dart';
-import 'package:pin_lock/src/entities/failure.dart';
 
 /// Provides information necessary to draw a screen with
 /// the overview of the current state of local authentication (e.g.,
@@ -152,12 +151,13 @@ class DisablingPinConfiguration extends Equatable {
   /// an apporpriate message to the user
   final LocalAuthFailure? error;
 
-  const DisablingPinConfiguration(
-      {this.error,
-      required this.pinInputWidget,
-      required this.canSubmitChange,
-      required this.onChangeSubmitted,
-      required this.onCancel});
+  const DisablingPinConfiguration({
+    this.error,
+    required this.pinInputWidget,
+    required this.canSubmitChange,
+    required this.onChangeSubmitted,
+    required this.onCancel,
+  });
   @override
   List<Object?> get props => [
         error,

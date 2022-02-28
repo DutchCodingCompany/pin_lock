@@ -61,7 +61,9 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                 (index) {
                   if (widget.hasError) {
                     return widget.inputNodeBuilder(
-                        index, InputFieldState.error);
+                      index,
+                      InputFieldState.error,
+                    );
                   }
                   return widget.inputNodeBuilder(index, _determineState(index));
                 },
