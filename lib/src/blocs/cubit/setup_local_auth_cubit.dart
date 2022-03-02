@@ -13,36 +13,46 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
     final lastState = state;
     if (lastState is Base) {
       final isPinAuthEnabled = await authenticator.isPinAuthenticationEnabled();
-      emit(lastState.copyWith(
-          isPinAuthEnabled: isPinAuthEnabled, isLoading: false));
+      emit(
+        lastState.copyWith(
+          isPinAuthEnabled: isPinAuthEnabled,
+          isLoading: false,
+        ),
+      );
 
       if (!isPinAuthEnabled) {
-        emit(lastState.copyWith(
-          isBiometricAuthAvailable: false,
-          isBiometricAuthEnabled: false,
-          isLoading: false,
-          isPinAuthEnabled: isPinAuthEnabled,
-        ));
+        emit(
+          lastState.copyWith(
+            isBiometricAuthAvailable: false,
+            isBiometricAuthEnabled: false,
+            isLoading: false,
+            isPinAuthEnabled: isPinAuthEnabled,
+          ),
+        );
         return;
       }
 
       final biometrics =
           await authenticator.getBiometricAuthenticationAvailability();
       if (biometrics is Available) {
-        emit(lastState.copyWith(
-          isPinAuthEnabled: isPinAuthEnabled,
-          isBiometricAuthAvailable: true,
-          isBiometricAuthEnabled: biometrics.isEnabled,
-          isLoading: false,
-        ));
+        emit(
+          lastState.copyWith(
+            isPinAuthEnabled: isPinAuthEnabled,
+            isBiometricAuthAvailable: true,
+            isBiometricAuthEnabled: biometrics.isEnabled,
+            isLoading: false,
+          ),
+        );
       }
       if (biometrics is Unavailable) {
-        emit(lastState.copyWith(
-          isPinAuthEnabled: isPinAuthEnabled,
-          isBiometricAuthEnabled: false,
-          isBiometricAuthAvailable: false,
-          isLoading: false,
-        ));
+        emit(
+          lastState.copyWith(
+            isPinAuthEnabled: isPinAuthEnabled,
+            isBiometricAuthEnabled: false,
+            isBiometricAuthAvailable: false,
+            isLoading: false,
+          ),
+        );
       }
     } else {
       emit(const Base(isLoading: true));
@@ -59,8 +69,10 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
         final result = biometricAvailability.isEnabled
             ? await authenticator.disableBiometricAuthentication()
             : await authenticator.enableBiometricAuthentication();
-        result.fold((l) => emit(lastState.copyWith(error: l)),
-            (r) => checkInitialState());
+        result.fold(
+          (l) => emit(lastState.copyWith(error: l)),
+          (r) => checkInitialState(),
+        );
       }
     }
   }
@@ -122,7 +134,8 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
     final lastState = state;
     if (lastState is Disabling) {
       final result = await authenticator.disableAuthenticationWithPin(
-          pin: Pin(lastState.pin));
+        pin: Pin(lastState.pin),
+      );
       result.fold(
         (l) => emit(lastState.copyWith(pin: '', error: l)),
         (r) => checkInitialState(),
@@ -173,11 +186,13 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
               emit(lastState.copyWith(currentPin: '', error: l));
               break;
             case LocalAuthFailure.pinNotMatching:
-              emit(lastState.copyWith(
-                newPin: '',
-                confirmationPin: '',
-                error: l,
-              ));
+              emit(
+                lastState.copyWith(
+                  newPin: '',
+                  confirmationPin: '',
+                  error: l,
+                ),
+              );
               break;
             default:
               emit(lastState.copyWith(error: l));

@@ -1,6 +1,6 @@
 name: pin_lock
 
-version: 0.0.1+4
+version: 0.0.1+5
 
 description: "A full solution to local authentication: it contains authentication logic and tracks authentication-relevant data, while providing an interface for app-specific UI implementatin."
 
@@ -26,8 +26,6 @@ dev_dependencies:
   build_runner: ^2.1.7
   lint: ^1.5.3
   mockito: ^5.0.17
-  
-
 
 flutter:
   plugin:

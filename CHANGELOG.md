@@ -1,3 +1,7 @@
+## 0.0.5
+
+Fixed static analysis
+
 ## 0.0.1+4
 
 Updated dependencies:

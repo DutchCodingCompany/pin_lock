@@ -27,9 +27,13 @@ export 'package:pin_lock/src/repositories/pin_repository.dart';
 export 'package:pin_lock/src/repositories/pin_repository_impl.dart';
 
 class PinLock {
+  PinLock._();
   static const MethodChannel _channel = MethodChannel('pin_lock');
 
-  static void setHideAppContent(bool preference, {String? iosAssetImage}) {
+  static void setHideAppContent({
+    required bool preference,
+    String? iosAssetImage,
+  }) {
     _channel.invokeMethod(
       'setHideAppContent',
       {'shouldHide': preference, 'iosAsset': iosAssetImage},
@@ -60,7 +64,8 @@ class PinLock {
   static Future<Authenticator> baseAuthenticator(String userId) async =>
       PinLock.authenticatorInstance(
         repository: LocalAuthenticationRepositoryImpl(
-            await SharedPreferences.getInstance()),
+          await SharedPreferences.getInstance(),
+        ),
         biometricAuthenticator: LocalAuthentication(),
         lockController: LockController(),
         userId: UserId(userId),

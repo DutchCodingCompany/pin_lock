@@ -43,8 +43,10 @@ abstract class Authenticator with WidgetsBindingObserver {
 
   /// Disables locking the app completely, including biometric authentication
   /// Only happens if provided [pin] is correct, or if [force] is true (which should be avoided)
-  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin(
-      {required Pin pin, bool force = false});
+  Future<Either<LocalAuthFailure, Unit>> disableAuthenticationWithPin({
+    required Pin pin,
+    bool force = false,
+  });
 
   /// Disables biometric authentication. If [requirePin] is true, it is necessary to provide the correct [pin]
   /// before biometric authentication is disabled
@@ -74,8 +76,9 @@ abstract class Authenticator with WidgetsBindingObserver {
   Future<bool> isPinAuthenticationEnabled();
 
   /// Triggers the OS's biometric authentication and changes the [lockState] if successful
-  Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics(
-      {required String userFacingExplanation});
+  Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics({
+    required String userFacingExplanation,
+  });
 
   /// Make an attempt to unlock the app using provided [pin]. If the [pin] is correct,
   /// [lockState] will be changed and lock screen dismissed

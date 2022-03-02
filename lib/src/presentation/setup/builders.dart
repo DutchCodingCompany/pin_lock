@@ -6,12 +6,15 @@ typedef OverviewBuilder = Widget Function(OverviewConfiguration configuration);
 
 /// Builds UI based on given [EnablingPinConfiguration]
 typedef EnablingPinWidgetBuilder = Widget Function(
-    EnablingPinConfiguration configuration);
+  EnablingPinConfiguration configuration,
+);
 
 /// Builds UI based on given [DisablingPinConfiguration]
 typedef DisablingPinWidgetBuilder = Widget Function(
-    DisablingPinConfiguration configuration);
+  DisablingPinConfiguration configuration,
+);
 
 /// Builds UI based on given [ChangingPinConfiguration]
 typedef ChangingPinWidgetBuilder = Widget Function(
-    ChangingPinConfiguration configuration);
+  ChangingPinConfiguration configuration,
+);

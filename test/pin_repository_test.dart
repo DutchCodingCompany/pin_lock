@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pin_lock/pin_lock.dart';
-import 'package:pin_lock/src/entities/value_objects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'pin_repository_test.mocks.dart';
@@ -58,7 +57,8 @@ void main() {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => true);
       final answer = await repository.isBiometricAuthenticationEnabled(
-          userId: UserId('1'));
+        userId: UserId('1'),
+      );
       expect(answer, true);
     });
 
@@ -66,7 +66,8 @@ void main() {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => false);
       final answer = await repository.isBiometricAuthenticationEnabled(
-          userId: UserId('1'));
+        userId: UserId('1'),
+      );
       expect(answer, false);
     });
 
@@ -74,7 +75,8 @@ void main() {
       final key = SPKey('biometric_enabled${UserId("1")}').value;
       when(sharedPreferences.getBool(key)).thenAnswer((_) => null);
       final answer = await repository.isBiometricAuthenticationEnabled(
-          userId: UserId('1'));
+        userId: UserId('1'),
+      );
       expect(answer, null);
     });
 
@@ -83,7 +85,8 @@ void main() {
       when(sharedPreferences.getBool(key))
           .thenThrow((_) => Exception('something went wrong'));
       final answer = await repository.isBiometricAuthenticationEnabled(
-          userId: UserId('1'));
+        userId: UserId('1'),
+      );
       expect(answer, null);
     });
   });
