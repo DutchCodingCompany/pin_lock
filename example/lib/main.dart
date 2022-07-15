@@ -31,14 +31,14 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     /// [Authenticator] needs to be registered as an app lifecycle observer
-    WidgetsBinding.instance?.addObserver(globalAuthenticator);
+    WidgetsBinding.instance.addObserver(globalAuthenticator);
   }
 
   @override
   void dispose() {
     /// When disposing of the app, remove [Authenticator]'s subscription
     /// to lifecycle events
-    WidgetsBinding.instance?.removeObserver(globalAuthenticator);
+    WidgetsBinding.instance.removeObserver(globalAuthenticator);
     super.dispose();
   }
 
