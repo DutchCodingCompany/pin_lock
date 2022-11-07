@@ -1,6 +1,6 @@
 name: pin_lock
 
-version: 0.0.1+5
+version: 0.0.1+6
 
 description: "A full solution to local authentication: it contains authentication logic and tracks authentication-relevant data, while providing an interface for app-specific UI implementatin."
 
