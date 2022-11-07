@@ -107,6 +107,7 @@ class SetuplocalauthCubit extends Cubit<SetupStage> {
           emit(
             lastState.copyWith(
               error: l,
+              pin: l == LocalAuthFailure.pinNotMatching ? '' : null,
               confirmationPin: l == LocalAuthFailure.pinNotMatching ? '' : null,
             ),
           );
