@@ -277,7 +277,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
       try {
         final isSuccessful = await _biometricAuth.authenticate(
           localizedReason: userFacingExplanation,
-          biometricOnly: true,
+          options: AuthenticationOptions(biometricOnly: true),
         );
         if (isSuccessful) {
           _lockController.unlock();
