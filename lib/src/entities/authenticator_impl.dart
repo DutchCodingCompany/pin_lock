@@ -295,6 +295,15 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     return const Left(LocalAuthFailure.unknown);
   }
 
+  @override
+  Future<bool> isCorrectPin({required Pin pin}) async {
+    final userPin = await _repository.getPin(forUser: userId);
+    if (userPin?.value != pin.value) {
+      return false;
+    }
+    return true;
+  }
+
   /// -- Helpers --
 
   Future<bool> _supportsBiometricAuthentication() {
