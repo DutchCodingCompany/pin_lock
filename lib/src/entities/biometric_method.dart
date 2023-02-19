@@ -1,1 +1,1 @@
-enum BiometricMethod { fingerprint, face, iris }
+enum BiometricMethod { fingerprint, face, iris, weak, strong }

@@ -209,6 +209,12 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         case BiometricType.iris:
           methods.add(BiometricMethod.iris);
           break;
+        case BiometricType.weak:
+          methods.add(BiometricMethod.weak);
+          break;
+        case BiometricType.strong:
+          methods.add(BiometricMethod.strong);
+          break;
         default:
           break;
       }
