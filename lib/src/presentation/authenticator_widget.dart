@@ -70,15 +70,17 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   late final StreamSubscription lockSubscription;
   OverlayEntry? overlayEntry;
   bool _isShowingSplashScreen = true;
+  late final Stream<LockState> lockState ;
 
   @override
   void initState() {
     super.initState();
+    lockState = widget.authenticator.lockState;
     PinLock.setHideAppContent(
       preference: widget.hideAppContent,
       iosAssetImage: widget.iosImageAsset,
     );
-    lockSubscription = widget.authenticator.lockState.listen((event) {
+    lockSubscription = lockState.listen((event) {
       if (event is Unlocked) {
         overlayEntry?.remove();
         overlayEntry = null;
@@ -120,7 +122,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<LockState>(
-      stream: widget.authenticator.lockState,
+      stream: lockState,
       builder: (context, snapshot) {
         if (snapshot.hasData && !_isShowingSplashScreen) {
           return widget.child;
