@@ -96,7 +96,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
             ),
           );
           if (!_isShowingSplashScreen) {
-            Overlay.of(context).insert(overlayEntry!);
+            Overlay.of(context)?.insert(overlayEntry!);
           }
         }
       }
@@ -105,7 +105,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
       setState(() {
         _isShowingSplashScreen = false;
         if (overlayEntry != null) {
-          Overlay.of(context).insert(overlayEntry!);
+          Overlay.of(context)?.insert(overlayEntry!);
         }
       });
     });
