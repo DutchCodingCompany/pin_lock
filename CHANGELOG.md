@@ -1,3 +1,10 @@
+## 0.0.3
+
+- Changed `lint` package to `flutter_lints` #12
+- Exposed BiometricAvailability `Available` & `Unavailable` state. #11
+- Update `local_auth` package to 2.1.3 #9
+- Fixed crash when returning Unit through MethodChannel. #5
+
 ## 0.0.1+5
 
 Fixed static analysis
