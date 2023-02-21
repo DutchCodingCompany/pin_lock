@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
         textTheme: TextTheme(
-          bodyText2: TextStyle(color: Colors.indigo),
+          bodyMedium: TextStyle(color: Colors.indigo),
         ),
       ),
 
@@ -96,7 +96,7 @@ class _InputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor = state == InputFieldState.error
-        ? Theme.of(context).errorColor
+        ? Theme.of(context).colorScheme.error
         : Theme.of(context).primaryColor;
     double borderWidth = 1;
     if (state == InputFieldState.focused ||
@@ -142,7 +142,7 @@ class _Home extends StatelessWidget {
         children: [
           Text(
             'This is the home screen',
-            style: Theme.of(context).textTheme.headline3,
+            style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
           TextButton(
