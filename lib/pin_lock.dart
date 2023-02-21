@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 export 'package:pin_lock/src/entities/authenticator.dart';
 export 'package:pin_lock/src/entities/biometric_availability.dart' show Available, Unavailable;
 export 'package:pin_lock/src/entities/biometric_method.dart';
-export 'package:pin_lock/src/entities/biometric_availability.dart';
 export 'package:pin_lock/src/entities/failure.dart';
 export 'package:pin_lock/src/entities/lock_controller.dart';
 export 'package:pin_lock/src/entities/lock_state.dart';
