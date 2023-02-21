@@ -25,7 +25,7 @@ class PinInputWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PinInputWidgetState createState() => _PinInputWidgetState();
+  State<PinInputWidget> createState() => _PinInputWidgetState();
 }
 
 class _PinInputWidgetState extends State<PinInputWidget> {

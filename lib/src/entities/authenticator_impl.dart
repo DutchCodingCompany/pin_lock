@@ -70,8 +70,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         final lastActive = await _repository.getPausedTimestamp();
         if (lastActive != null) {
           final now = DateTime.now();
-          if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch >
-              lockAfterDuration.inMilliseconds) {
+          if (now.millisecondsSinceEpoch - lastActive.millisecondsSinceEpoch > lockAfterDuration.inMilliseconds) {
             _lockController.lock(
               availableMethods: await getAvailableBiometricMethods(),
             );
@@ -210,6 +209,8 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
         case BiometricType.iris:
           methods.add(BiometricMethod.iris);
           break;
+        default:
+          break;
       }
     }
     return methods;
@@ -221,15 +222,13 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     if (!isSupported) {
       return const Unavailable(reason: LocalAuthFailure.notAvailable);
     }
-    final storedValue =
-        await _repository.isBiometricAuthenticationEnabled(userId: userId);
+    final storedValue = await _repository.isBiometricAuthenticationEnabled(userId: userId);
     return Available(isEnabled: storedValue ?? false);
   }
 
   @override
   Future<bool> isPinAuthenticationEnabled() async {
-    final storedValue =
-        await _repository.isPinAuthenticationEnabled(userId: userId);
+    final storedValue = await _repository.isPinAuthenticationEnabled(userId: userId);
     return storedValue ?? false;
   }
 
@@ -263,8 +262,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   Future<Either<LocalAuthFailure, Unit>> unlockWithBiometrics({
     required String userFacingExplanation,
   }) async {
-    final biometricAvailability =
-        await getBiometricAuthenticationAvailability();
+    final biometricAvailability = await getBiometricAuthenticationAvailability();
     if (biometricAvailability is Available) {
       if (!biometricAvailability.isEnabled) {
         _lockController.lock(availableMethods: const []);
@@ -277,7 +275,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
       try {
         final isSuccessful = await _biometricAuth.authenticate(
           localizedReason: userFacingExplanation,
-          options: AuthenticationOptions(biometricOnly: true),
+          options: const AuthenticationOptions(biometricOnly: true),
         );
         if (isSuccessful) {
           _lockController.unlock();
@@ -304,11 +302,9 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   }
 
   Future<bool> _isLockedDueToTooManyAttempts() async {
-    final failedAttemptsList =
-        await _repository.getListOfFailedAttempts(userId: userId);
+    final failedAttemptsList = await _repository.getListOfFailedAttempts(userId: userId);
     if (failedAttemptsList.length > maxRetries) {
-      if (DateTime.now().difference(failedAttemptsList.last) <
-          lockedOutDuration) {
+      if (DateTime.now().difference(failedAttemptsList.last) < lockedOutDuration) {
         return true;
       }
     }
@@ -323,9 +319,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
       final biometric = await getBiometricAuthenticationAvailability();
       if (biometric is Available) {
         _lockController.lock(
-          availableMethods: biometric.isEnabled
-              ? await getAvailableBiometricMethods()
-              : const [],
+          availableMethods: biometric.isEnabled ? await getAvailableBiometricMethods() : const [],
         );
       }
       if (biometric is Unavailable) {

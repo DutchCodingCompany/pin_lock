@@ -1,14 +1,10 @@
-include: package:lint/analysis_options.yaml
+include: package:flutter_lints/flutter.yaml
 
 analyzer:
-    exclude:
-        - "lib/**/*.g.dart"
-        - "lib/**/*.freezed.dart"
-        - "lib/**/*.mocks.dart"
-    errors:
-      todo: info
-    enable-experiment:
-      - nonfunction-type-aliases
+  exclude:
+    - "lib/**/*.mocks.dart"
+  errors:
+    todo: info
 
 linter:
   rules:
