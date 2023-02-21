@@ -32,7 +32,7 @@ class PinLockPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         }
                     }
                 }
-                result.success(Unit)
+                result.success(null)
             }
             else -> result.notImplemented()
         }
