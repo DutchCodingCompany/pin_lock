@@ -1,3 +1,8 @@
+## 0.0.4
+
+- reverted removing of safe-calls on overlays. They are only for flutter >= 3.7.0.
+- Changed flutter sdk limit from >= 1.20.0 to  >= 3.0.0
+
 ## 0.0.3
 
 - Changed `lint` package to `flutter_lints` #12
