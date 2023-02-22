@@ -302,10 +302,21 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
 
   @override
   Future<bool> isCorrectPin({required Pin pin}) async {
-    final userPin = await _repository.getPin(forUser: userId);
-    if (userPin?.value != pin.value) {
+    final isEnabled = await isPinAuthenticationEnabled();
+    if (!isEnabled) {
+      return true;
+    }
+    if (await _isLockedDueToTooManyAttempts()) {
       return false;
     }
+
+    final userPin = await _repository.getPin(forUser: userId);
+    if (userPin?.value != pin.value) {
+      await _repository.addFailedAttempt(DateTime.now(), forUser: userId);
+      return false;
+    }
+    await _repository.resetFailedAttempts(ofUser: userId);
+    _repository.clearLastPausedTimestamp();
     return true;
   }
 
