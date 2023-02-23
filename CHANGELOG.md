@@ -1,3 +1,9 @@
+## 0.1.0
+
+- [BREAKING] Change `maxRetries` to `maxTries`. #16
+- Fixed bug when clearing input on error focus of android keyboard was lost. #17
+- Fixed bug preventing calling `_checkInitialLockStatus` twice and added `isCorrectPin` method to authenticator for verifying pin without unlocking. #14
+
 ## 0.0.4
 
 - reverted removing of safe-calls on overlays. They are only for flutter >= 3.7.0.
