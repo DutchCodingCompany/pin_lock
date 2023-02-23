@@ -316,6 +316,9 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     final userPin = await _repository.getPin(forUser: userId);
     if (userPin?.value != pin.value) {
       await _repository.addFailedAttempt(DateTime.now(), forUser: userId);
+      if (await _isLockedDueToTooManyAttempts()) {
+        return false;
+      }
       return false;
     }
     await _repository.resetFailedAttempts(ofUser: userId);
