@@ -31,6 +31,7 @@ class PinInputWidget extends StatefulWidget {
 class _PinInputWidgetState extends State<PinInputWidget> {
   late final TextEditingController controller;
   late final FocusNode focusNode;
+
   @override
   void initState() {
     super.initState();
@@ -43,9 +44,16 @@ class _PinInputWidgetState extends State<PinInputWidget> {
   }
 
   @override
+  void dispose() {
+    focusNode.dispose();
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (controller.text != widget.value) {
-      controller.text = widget.value;
+      controller.clear();
     }
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -77,10 +85,9 @@ class _PinInputWidgetState extends State<PinInputWidget> {
                   focusNode: focusNode,
                   keyboardType: TextInputType.number,
                   maxLength: widget.pinLength,
-                  onChanged: (text) async {
+                  onChanged: (text) {
                     widget.onInput(text);
-                    if (text.length == widget.pinLength &&
-                        focusNode.hasFocus == true) {
+                    if (text.length == widget.pinLength && focusNode.hasFocus == true) {
                       widget.nextFocusNode?.requestFocus();
                     }
                   },
