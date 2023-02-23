@@ -83,4 +83,7 @@ abstract class Authenticator with WidgetsBindingObserver {
   /// Make an attempt to unlock the app using provided [pin]. If the [pin] is correct,
   /// [lockState] will be changed and lock screen dismissed
   Future<Either<LocalAuthFailure, Unit>> unlockWithPin({required Pin pin});
+
+  /// Check if provided [pin] is correct.
+  Future<bool> isCorrectPin({required Pin pin});
 }
