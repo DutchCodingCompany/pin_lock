@@ -10,7 +10,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   @override
   final Duration lockedOutDuration;
   @override
-  final int maxRetries;
+  final int maxTries;
   @override
   final int pinLength;
   @override
@@ -30,7 +30,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     this._repository,
     this._biometricAuth,
     this._lockController,
-    this.maxRetries,
+    this.maxTries,
     this.lockedOutDuration,
     this.lockAfterDuration,
     this.pinLength,
@@ -250,6 +250,9 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
     final userPin = await _repository.getPin(forUser: userId);
     if (userPin?.value != pin.value) {
       await _repository.addFailedAttempt(DateTime.now(), forUser: userId);
+      if (await _isLockedDueToTooManyAttempts()) {
+        return const Left(LocalAuthFailure.tooManyAttempts);
+      }
       return const Left(LocalAuthFailure.wrongPin);
     }
     await _repository.resetFailedAttempts(ofUser: userId);
@@ -303,7 +306,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
 
   Future<bool> _isLockedDueToTooManyAttempts() async {
     final failedAttemptsList = await _repository.getListOfFailedAttempts(userId: userId);
-    if (failedAttemptsList.length > maxRetries) {
+    if (failedAttemptsList.length >= maxTries) {
       if (DateTime.now().difference(failedAttemptsList.last) < lockedOutDuration) {
         return true;
       }

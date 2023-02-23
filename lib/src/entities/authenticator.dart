@@ -17,10 +17,10 @@ abstract class Authenticator with WidgetsBindingObserver {
 
   /// The number of times that a pin can be entered incorrectly, before the app
   /// stops accepting unlock attempts for [lockedOutDuration]
-  int get maxRetries;
+  int get maxTries;
 
   /// A duration for which the app will be locked after the number of times the pin is
-  /// entered incorrectly exceeds [maxRetries]
+  /// entered incorrectly exceeds [maxTries]
   Duration get lockedOutDuration;
 
   /// The expected lenght of the pin, used to draw the [PinInputWidget]
