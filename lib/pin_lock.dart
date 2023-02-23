@@ -48,14 +48,14 @@ class PinLock {
     required UserId userId,
     Duration? lockedOutDuration,
     Duration? lockAfterDuration,
-    int? maxRetries,
+    int? maxTries,
     int? pinLength,
   }) =>
       AuthenticatorImpl(
         repository,
         biometricAuthenticator,
         lockController,
-        maxRetries ?? 5,
+        maxTries ?? 5,
         lockedOutDuration ?? const Duration(minutes: 1),
         lockAfterDuration ?? const Duration(seconds: 5),
         pinLength ?? 4,
