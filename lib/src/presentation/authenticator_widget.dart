@@ -76,10 +76,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   void initState() {
     super.initState();
     lockState = widget.authenticator.lockState;
-    PinLock.setHideAppContent(
-      preference: widget.hideAppContent,
-      iosAssetImage: widget.iosImageAsset,
-    );
+
     lockSubscription = lockState.listen((event) {
       if (event is Unlocked) {
         overlayEntry?.remove();
@@ -123,6 +120,10 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
 
   @override
   Widget build(BuildContext context) {
+    PinLock.setHideAppContent(
+      preference: widget.hideAppContent,
+      iosAssetImage: widget.iosImageAsset,
+    );
     return StreamBuilder<LockState>(
       stream: lockState,
       builder: (context, snapshot) {
