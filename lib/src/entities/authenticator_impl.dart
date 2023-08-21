@@ -59,7 +59,8 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
 
         /// When the app is [paused], it first goes to [inactive] before continuing to [resumed]
         /// Ensure that the paused timestamp is not saved just before the app becomes [resumed]
-        if (_lastState != AppLifecycleState.paused) {
+        if (_lastState != AppLifecycleState.paused &&
+            _lockController.lockState is Unlocked) {
           _repository.savePausedTimestamp(DateTime.now());
         }
         break;

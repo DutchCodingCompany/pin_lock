@@ -12,6 +12,9 @@ class LockController {
   /// state of the app
   late final Stream<LockState> state;
 
+  // The current lock state of the app
+  late LockState lockState = const Unlocked();
+
   /// Optionally register a callback that gets triggered every time the app is locked
   /// (e.g., for analytics purposes)
   final VoidCallback? onLockCallback;
@@ -36,13 +39,15 @@ class LockController {
   /// [availableMethods] refer to [BiometricMethod]s that the device supports, or an empty list if the
   /// device doesn't support biometrics or the user has not opted in to using it.
   void lock({required List<BiometricMethod> availableMethods}) {
-    _streamController.add(Locked(availableBiometricMethods: availableMethods));
+    lockState = Locked(availableBiometricMethods: availableMethods);
+    _streamController.add(lockState);
   }
 
   /// Results in dismissing the lock screen overlay and making the app contents visible.
   /// Probably shouldn't be used manually, unless there's a really good reason to. It was
   /// intended to be used by the pin_lock package internally
   void unlock() {
-    _streamController.add(const Unlocked());
+    lockState = const Unlocked();
+    _streamController.add(lockState);
   }
 }
