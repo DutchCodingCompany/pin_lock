@@ -38,7 +38,7 @@ class AuthenticatorImpl with WidgetsBindingObserver implements Authenticator {
   );
 
   @override
-  Stream<LockState> get lockState {
+  Stream<PinLockState> get lockState {
     _checkInitialLockStatus();
     return _lockController.state;
   }

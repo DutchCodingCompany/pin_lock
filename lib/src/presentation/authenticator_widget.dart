@@ -70,7 +70,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
   late final StreamSubscription lockSubscription;
   OverlayEntry? overlayEntry;
   bool _isShowingSplashScreen = true;
-  late final Stream<LockState> lockState ;
+  late final Stream<PinLockState> lockState;
 
   @override
   void initState() {
@@ -123,7 +123,7 @@ class _AuthenticatorWidgetState extends State<AuthenticatorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<LockState>(
+    return StreamBuilder<PinLockState>(
       stream: lockState,
       builder: (context, snapshot) {
         if (snapshot.hasData && !_isShowingSplashScreen) {

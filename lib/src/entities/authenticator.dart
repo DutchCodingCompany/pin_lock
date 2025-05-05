@@ -12,8 +12,8 @@ abstract class Authenticator with WidgetsBindingObserver {
   /// Interval after which the app will become pin locked after entering the background
   Duration get lockAfterDuration;
 
-  /// Emits a [LockState] event every time the state is changed
-  Stream<LockState> get lockState;
+  /// Emits a [PinLockState] event every time the state is changed
+  Stream<PinLockState> get lockState;
 
   /// The number of times that a pin can be entered incorrectly, before the app
   /// stops accepting unlock attempts for [lockedOutDuration]
