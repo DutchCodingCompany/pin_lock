@@ -2,9 +2,9 @@ group 'nl.dutchcodingcompany.pin_lock'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.1.21'
+    ext.kotlin_version = '2.2.20'
     ext {
-        agp_version = '8.10.0'
+        agp_version = '8.12.1'
     }
     repositories {
         google()
@@ -29,7 +29,7 @@ apply plugin: 'kotlin-android'
 
 android {
     namespace "nl.dutchcodingcompany.pin_lock"
-    compileSdkVersion 30
+    compileSdkVersion 36
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
